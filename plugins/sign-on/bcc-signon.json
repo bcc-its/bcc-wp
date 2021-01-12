@@ -1,0 +1,20 @@
+{
+"name": "BCC Signon",
+"version": "$_PluginVersion_$",
+"download_url": "https://developer.bcc.no/api/updates/bcc-signon.zip",
+
+"homepage": "https://developer.bcc.no/",
+"requires": "4.0",
+"last_updated": "$_PluginDate_$",
+"tested": "5.5",
+"upgrade_notice": "Here's why you should upgrade...",
+
+"author": "BCC IT",
+"author_homepage": "https://developer.bcc.no/",
+
+"sections": {
+"description": "<p>BCC Signon allows you to connect your website to BCC's Login system : only BCC Members will then be allowed to visit your website</p> <h4>What can this plugin do?</h4> <ul> <li>Protect a website with OIDC</li> <li>Single SignOn/SignOut with all BCC's websites</li> <li>Enable BCC Topbar in one click</li> <li>Enable private newsfeeds</li> </ul> <h4>Technical Support</h4> Feel free to send us any question/report any issue at <a href='mailto:it@bcc.no'>it@bcc.no</a>.",
+"installation": "<h4>Plugin installation</h4> <ul> <li>Download the plugin <a href='https://developer.bcc.no/api/updates/bcc-signon.zip'>here</a></li> <li>Navigate to <strong>Plugins &rarr; Add New &rarr; Upload Plugin</strong></li> <li>Select the bcc-signon.zip file on your disk</li> <li>Click on <strong>Install Now</strong></li> </ul> Activate the BCC Signon plugin from <strong>Plugins</strong> page.",
+"changelog": "<h4>1.1.13</h4><ul><li>Revive privacy enforcement logic</li><li>Introduce new field - Unprotected URLs - which allows to skip privacy for certain pages</li><li>Introduce new field - Protected URLs - which allows to add privacy for certain pages</li></ul><h4>1.1.12</h4><ul><li>Update core to v3.7.1</li><li>Supported on WordPress version 5.5</li></ul><h4>1.1.11</h4><ul><li>Delete expired transients</li></ul><h4>1.1.10</h4><ul><li>Identify user by personId on login</li></ul><h4>1.1.9</h4><ul><li>Disable REST API for non authenticated users</li></ul><h4>1.1.8</h4><ul><li>Update the OIDC generic client to the latest version which fixes the race condition</li><li>Update the logic in bcc-customizations to make use of the new hooks</li><li>Identify user by personId</li></ul><h4>1.1.7</h4><ul><li>Add shortcode for birthday widget</li></ul><h4>1.1.6</h4><ul><li>Get control of the BCC settings</li></ul><h4>1.1.5</h4><ul><li>Plugin settings are consistent on all instances</li></ul><h4>1.1.4</h4><ul><li>Users are linked using their personId instead of email</li></ul><h4>1.1.3</h4><ul><li>Featured images are automatically added to the RSS feed</li></ul><h4>1.1.2</h4><ul><li>Added shortcodes for Search and TV-Guide widget</li></ul><h4>1.1.1</h4><ul><li>removed misplaced character in calendar shortcodes</li></ul><h4>1.1.0</h4><ul><li>Added shortcodes for calendar widgets</li></ul><h4>1.0.9</h4><ul><li>Fixing a bug where private newsfeed link was still protected.</li></ul><h4>1.0.8</h4><ul><li>Added support for 'alternate redirect uri'.</li></ul><h4>1.0.7</h4><ul><li>Add settings links to the plugin page</li><li>Updated default domain of OpenID provider</li></ul><h4>1.0.6</h4><ul><li>Fixed compatibility issue when wp-debug is enabled</li></ul><h4>1.0.5</h4><ul><li>Redirecting back the user to the requested page once logged-in instead of to the home page.</li></ul><h4>1.0.4</h4><ul><li>Added Signout of BCC widgets</li></ul><h4>1.0.3</h4><ul><li>Fixing compatibility issue with PHP>5.4.5</li></ul><h4>1.0.2</h4><ul><li>Disabling logger by default</li><li>Single SignOut support</li></ul><h4>1.0.1</h4><ul><li>Automatic checks for plugin updates</li></ul><h4>1.0.0</h4><ul><li>Integration to BCC's Login System</li><li>Single Sign Out support</li><li>Private newsfeed support: you can choose to activate private newsfeed, which will generate a private link</li><li>Topbar integration</li></ul>"
+}
+}
