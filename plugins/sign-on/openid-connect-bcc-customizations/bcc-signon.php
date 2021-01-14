@@ -106,7 +106,7 @@ class BCC_Signon {
 				'description' => 'This shows BCCs topbar on your website.'));
 			add_settings_field('bcc_local_church', "Local church", array($this, 'do_text_field'), $this->options_page_name, 'identification', 
 				array('name' => 'bcc_local_church', 'value' => $this->bcc_local_church,
-				'description' => 'Type in your local church name. Read more on <a href="https://developer.bcc.no/docs/bcc-signon-wordpress/plugin-configuration">developer.bcc.no</a>.'));
+				'description' => 'Type in your local church name. Read more on <a href="https://developer.bcc.no/docs/bcc-signon-wordpress/plugin-configuration" target="_blank">developer.bcc.no</a>.'));
 		} );
 	}
 
@@ -182,15 +182,15 @@ class BCC_Signon {
 	 * Generate the description for a field
 	 */
 	public function do_field_description($args) {
-		if (isset( $args['description'])):
+		if (isset( $args['description'])) :
 		?>
-		<p class="description">
-			<?php print $args['description']; ?>
-			<?php if ( isset( $args['example'] ) ) : ?>
-				<br/><strong><?php _e( 'Example' ); ?>: </strong>
-				<code><?php print $args['example']; ?></code>
-			<?php endif; ?>
-		</p>
+			<p class="description">
+				<?php print $args['description']; ?>
+				<?php if ( isset( $args['example'] ) ) : ?>
+					<br/><strong><?php _e( 'Example' ); ?>: </strong>
+					<code><?php print $args['example']; ?></code>
+				<?php endif; ?>
+			</p>
 		<?php
 		endif;
 	}
@@ -222,6 +222,7 @@ class BCC_Signon {
 			$user_meta = get_userdata($subscriber->ID);
 			$user_roles = $user_meta->roles;
 
+			// Check if 'subscriber' is the only role the user has
 			if ( count($user_roles) == 1 && $user_roles[0] == 'subscriber' ) {
 				wp_delete_user($subscriber->ID);
 			}
@@ -230,4 +231,5 @@ class BCC_Signon {
 }
 
 $plugin = new BCC_Signon();
+
 ?>
