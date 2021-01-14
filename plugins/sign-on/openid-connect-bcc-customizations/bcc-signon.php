@@ -1,11 +1,13 @@
 <?php
 
 class BCC_Signon {
-	
+	const BCC_SIGNON_VERSION = '$_PluginVersion_$';
+
 	protected $bcc_auth_domain;
 	protected $private_newsfeed_link;
 	protected $private_newsfeeds;
 	protected $bcc_topbar;
+	protected $bcc_local_church;
 	protected $option_name = "bcc-signon-plugin-settings-group";
 	protected $options_page_name = "bcc_signon_settings_page";
 
@@ -25,6 +27,8 @@ class BCC_Signon {
 		$this->bcc_topbar = get_option('bcc_topbar');
 
 		$this->private_newsfeeds = get_option('private_newsfeeds');
+
+		$this->bcc_local_church = get_option('bcc_local_church');
 
 		$this->load_dependencies();
 		add_action('admin_menu', array ($this, 'bcc_signon_plugin_create_menu'));
@@ -67,7 +71,7 @@ class BCC_Signon {
 		include_once plugin_dir_path( dirname( __FILE__) ) . 'openid-connect-bcc-customizations/includes/oidc-configuration.php';
 		include_once plugin_dir_path( dirname( __FILE__) ) . 'openid-connect-bcc-customizations/includes/privacy-settings.php';
 		include_once plugin_dir_path( dirname( __FILE__) ) . 'openid-connect-bcc-customizations/includes/widgets.php';
-		include_once plugin_dir_path( dirname( __FILE__) ) . 'openid-connect-bcc-customizations/includes/signin.php';
+		include_once plugin_dir_path( dirname( __FILE__) ) . 'openid-connect-bcc-customizations/includes/snippets.php';
 	}
 
 	/**
@@ -77,26 +81,31 @@ class BCC_Signon {
 		register_setting( $this->option_name, 'bcc_auth_domain' );
 		register_setting( $this->option_name, 'private_newsfeeds' );
 		register_setting( $this->option_name, 'bcc_topbar' );
-		add_options_page('BCC Signon', 'BCC Signon', 'manage_options', $this->options_page_name, array($this, $this->options_page_name));
-		add_action( 'admin_init', function(){
+		register_setting( $this->option_name, 'bcc_local_church' );
+		add_options_page( 'BCC Signon', 'BCC Signon', 'manage_options', $this->options_page_name, array($this, $this->options_page_name) );
+		add_action( 'admin_init', function() {
 			/* Sections */
-			add_settings_section( 'oidc', 'OpenId Connect', function(){} , $this->options_page_name);
-			add_settings_section( 'newsfeed', 'NewsFeed', function(){} , $this->options_page_name);
-			add_settings_section( 'topbar', 'TopBar', function(){} , $this->options_page_name);
+			add_settings_section( 'oidc', 'OpenId Connect', function(){}, $this->options_page_name );
+			add_settings_section( 'newsfeed', 'NewsFeed', function(){}, $this->options_page_name );
+			add_settings_section( 'topbar', 'TopBar', function(){}, $this->options_page_name );
+			add_settings_section( 'identification', 'Identification', function(){}, $this->options_page_name );
 
 			/* Fields */
-			add_settings_field('bcc_auth_domain', "BCC Signon URL", array ($this, 'do_text_field'), $this->options_page_name, 'oidc', 
+			add_settings_field('bcc_auth_domain', "BCC Signon URL", array($this, 'do_text_field'), $this->options_page_name, 'oidc', 
 				array('name' => 'bcc_auth_domain', 'value' => $this->bcc_auth_domain, 'readonly' => 1));
-			add_settings_field('private_newsfeeds', "Enable Private Newsfeeds", array ($this, 'do_checkbox_field'), $this->options_page_name, 'newsfeed', 
+			add_settings_field('private_newsfeeds', "Enable Private Newsfeeds", array($this, 'do_checkbox_field'), $this->options_page_name, 'newsfeed', 
 				array('name' => 'private_newsfeeds', 'value' => $this->private_newsfeeds, 
 				'description' => 'This makes the newsfeed of your site accessible only via the <code>Private newsfeed link</code> from below.'));
 			add_settings_field('private_newsfeed_link', "Private newsfeed link", array ($this, 'do_text_field'), $this->options_page_name, 'newsfeed', 
 				array('name' => 'private_newsfeed_link', 'value' => ($this->private_newsfeeds ? get_site_url() . get_private_link_feed() : ''), 'readonly' => 1,
 				'description' => 'Please share this URL with BCC to integrate your news into the BCC Portal.'));
-			add_settings_field('bcc_topbar', "Enable TopBar", array ($this, 'do_checkbox_field'), $this->options_page_name, 'topbar', 
+			add_settings_field('bcc_topbar', "Enable TopBar", array($this, 'do_checkbox_field'), $this->options_page_name, 'topbar', 
 				array('name' => 'bcc_topbar', 'value' => $this->bcc_topbar, 
-				'description' => 'This shows BCCs topbar on your website: read more on developer.bcc.no.'));
-		});
+				'description' => 'This shows BCCs topbar on your website.'));
+			add_settings_field('bcc_local_church', "Local church", array($this, 'do_text_field'), $this->options_page_name, 'identification', 
+				array('name' => 'bcc_local_church', 'value' => $this->bcc_local_church,
+				'description' => 'Type in your local church name. Read more on <a href="https://developer.bcc.no/docs/bcc-signon-wordpress/plugin-configuration">developer.bcc.no</a>.'));
+		} );
 	}
 
 	/**
@@ -170,17 +179,17 @@ class BCC_Signon {
 	 * Get access_token of logged in user.
 	 */
 	public static function get_access_token(){
-	$user_id = get_current_user_id();
-	if ( empty( $user_id ) ){
-		return '';
-	}
-	$tokens = get_user_meta($user_id, 'openid-connect-generic-last-token-response', true);
-	if (empty( $tokens )) {
-		return '';
-	}
-	$access_token = $tokens['access_token'];
+		$user_id = get_current_user_id();
+		if ( empty($user_id) ) {
+			return '';
+		}
 
-	return $access_token;
+		$tokens = get_user_meta($user_id, 'openid-connect-generic-last-token-response', true);
+		if ( empty($tokens) ) {
+			return '';
+		}
+
+		return $tokens['access_token'];
 	}
 }
 

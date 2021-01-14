@@ -182,13 +182,14 @@ class OpenID_Connect_Generic {
 	function enforce_privacy_redirect() {
 		if ( $this->settings->enforce_privacy 
 				&& ! OpenID_Connect_Generic::is_unprotected_url()
-				&& ! is_user_logged_in() )
+				&& ! is_user_logged_in() ) {
 			OpenID_Connect_Generic::redirect_to_login_page();
-
+		}
 		else if ( ! $this->settings->enforce_privacy
 				&& OpenID_Connect_Generic::is_protected_url()
-				&& ! is_user_logged_in() )
+				&& ! is_user_logged_in() ) {
 			OpenID_Connect_Generic::redirect_to_login_page();
+		}
 	}
 
 	/**
@@ -198,7 +199,12 @@ class OpenID_Connect_Generic {
 		global $wp;
 		
 		$url = home_url(add_query_arg(array($_GET), $wp->request));
-		$unprotected = array_map('trim', apply_filters('oidc_unprotected_urls', explode("\n", $this->settings->unprotected_urls)));
+		$unprotected = array_map('trim',
+			apply_filters(
+				'oidc_unprotected_urls',
+				explode("\n", $this->settings->unprotected_urls)
+			)
+		);
 
 		return OpenID_Connect_Generic::check_regexes($url, $unprotected);
 	}
@@ -210,7 +216,12 @@ class OpenID_Connect_Generic {
 		global $wp;
 		
 		$url = home_url(add_query_arg(array($_GET), $wp->request));
-		$protected = apply_filters('oidc_protected_urls', explode("\n", $this->settings->protected_urls));
+		$protected = array_map('trim',
+			apply_filters(
+				'oidc_protected_urls',
+				explode("\n", $this->settings->protected_urls)
+			)
+		);
 
 		return OpenID_Connect_Generic::check_regexes($url, $protected);
 	}
@@ -246,7 +257,9 @@ class OpenID_Connect_Generic {
 	 * @return mixed
 	 */
 	function enforce_privacy_feeds( $content ) {
-		if ( $this->settings->enforce_privacy && ! is_user_logged_in() ) {
+		if ( $this->settings->enforce_privacy
+			&& ! OpenID_Connect_Generic::is_unprotected_url()
+			&& ! is_user_logged_in() ) {
 			$content = __( 'Private site', 'daggerhart-openid-connect-generic' );
 		}
 		return $content;
@@ -259,7 +272,7 @@ class OpenID_Connect_Generic {
 	 */
 	function upgrade() {
 		$last_version = get_option( 'openid-connect-generic-plugin-version', 0 );
-		$settings = $this->settings;
+        $last_bcc_signon_version = get_option( 'bcc-signon-plugin-version', 0 );
 
 		// We keep BCC defined settings
 		$settings = new OpenID_Connect_Generic_Option_Settings('openid_connect_generic_settings', bcc_settings(), false);
@@ -272,6 +285,30 @@ class OpenID_Connect_Generic {
 			// Update the stored version number.
 			update_option( 'openid-connect-generic-plugin-version', self::VERSION );
 		}
+
+        if ( version_compare( BCC_Signon::BCC_SIGNON_VERSION, $last_bcc_signon_version, '>' ) ) {
+            self::delete_subscribers();
+
+            update_option( 'bcc-signon-plugin-version', BCC_Signon::BCC_SIGNON_VERSION );
+        }
+    }
+
+    /**
+     * Delete all subscribers
+     */
+    static public function delete_subscribers() {
+        require_once(ABSPATH.'wp-admin/includes/user.php');
+
+        $all_subscribers = get_users('role=subscriber');
+
+        foreach ($all_subscribers as $subscriber) {
+			$user_meta = get_userdata($subscriber->ID);
+			$user_roles = $user_meta->roles;
+
+			if ( count($user_roles) == 1 && $user_roles[0] == 'subscriber' ) {
+				wp_delete_user($subscriber->ID);
+			}
+        }
 	}
 
 	/**
