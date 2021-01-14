@@ -272,7 +272,6 @@ class OpenID_Connect_Generic {
 	 */
 	function upgrade() {
 		$last_version = get_option( 'openid-connect-generic-plugin-version', 0 );
-        $last_bcc_signon_version = get_option( 'bcc-signon-plugin-version', 0 );
 
 		// We keep BCC defined settings
 		$settings = new OpenID_Connect_Generic_Option_Settings('openid_connect_generic_settings', bcc_settings(), false);
@@ -285,31 +284,7 @@ class OpenID_Connect_Generic {
 			// Update the stored version number.
 			update_option( 'openid-connect-generic-plugin-version', self::VERSION );
 		}
-
-        if ( version_compare( BCC_Signon::BCC_SIGNON_VERSION, $last_bcc_signon_version, '>' ) ) {
-            self::delete_subscribers();
-
-            update_option( 'bcc-signon-plugin-version', BCC_Signon::BCC_SIGNON_VERSION );
-        }
     }
-
-    /**
-     * Delete all subscribers
-     */
-    static public function delete_subscribers() {
-        require_once(ABSPATH.'wp-admin/includes/user.php');
-
-        $all_subscribers = get_users('role=subscriber');
-
-        foreach ($all_subscribers as $subscriber) {
-			$user_meta = get_userdata($subscriber->ID);
-			$user_roles = $user_meta->roles;
-
-			if ( count($user_roles) == 1 && $user_roles[0] == 'subscriber' ) {
-				wp_delete_user($subscriber->ID);
-			}
-        }
-	}
 
 	/**
 	 * Expire state transients by attempting to access them and allowing the

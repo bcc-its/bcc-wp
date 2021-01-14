@@ -1,8 +1,6 @@
 <?php
 
 class BCC_Signon {
-	const BCC_SIGNON_VERSION = '$_PluginVersion_$';
-
 	protected $bcc_auth_domain;
 	protected $private_newsfeed_link;
 	protected $private_newsfeeds;
@@ -25,9 +23,7 @@ class BCC_Signon {
 		}
 
 		$this->bcc_topbar = get_option('bcc_topbar');
-
 		$this->private_newsfeeds = get_option('private_newsfeeds');
-
 		$this->bcc_local_church = get_option('bcc_local_church');
 
 		$this->load_dependencies();
@@ -37,14 +33,10 @@ class BCC_Signon {
 	/**
 	 * Helper to create the GUID
 	 */
-	private function createGUID()
-	{
-		if (function_exists('com_create_guid'))
-		{
+	private function createGUID() {
+		if (function_exists('com_create_guid')) {
 			return com_create_guid();
-		}
-		else
-		{
+		} else {
 			mt_srand((double)microtime()*10000);
 			//optional for php 4.2.0 and up.
 			$set_charid = strtoupper(md5(uniqid(rand(), true)));
@@ -78,11 +70,21 @@ class BCC_Signon {
 	 * Create the menu item
 	 */
 	public function bcc_signon_plugin_create_menu() {
+		add_action ( 'admin_init', function() {
+			if ( isset( $_GET['delete_subscribers'] ) && $_GET['delete_subscribers'] == 'true' ) {
+				$this->delete_subscribers();
+
+				wp_redirect( remove_query_arg( 'delete_subscribers', wp_get_referer() ) );
+  				exit;
+			}
+		} );
+
 		register_setting( $this->option_name, 'bcc_auth_domain' );
 		register_setting( $this->option_name, 'private_newsfeeds' );
 		register_setting( $this->option_name, 'bcc_topbar' );
 		register_setting( $this->option_name, 'bcc_local_church' );
 		add_options_page( 'BCC Signon', 'BCC Signon', 'manage_options', $this->options_page_name, array($this, $this->options_page_name) );
+
 		add_action( 'admin_init', function() {
 			/* Sections */
 			add_settings_section( 'oidc', 'OpenId Connect', function(){}, $this->options_page_name );
@@ -111,26 +113,44 @@ class BCC_Signon {
 	/**
 	 * Creates the settings page
 	 */
-	public function bcc_signon_settings_page() {
-		?>
+	public function bcc_signon_settings_page() { ?>
 		<div class="wrap">
-		<h1>BCC Signon Settings</h1>
+			<h1>BCC Signon Settings</h1>
+			<form method="post" action="options.php">
+				<?php settings_fields( $this->option_name); ?>
+				<?php do_settings_sections($this->options_page_name ); ?>
+				<?php submit_button(); ?>
+			</form>
 
-		<form method="post" action="options.php">
-
-		<?php settings_fields( $this->option_name); ?>
-		<?php do_settings_sections($this->options_page_name ); ?>
-		<?php submit_button(); ?>
-
-		</form>
+			<form method="post" action="<?php echo add_query_arg( 'delete_subscribers', 'true', wp_get_referer() ) ?>">
+				<?php submit_button('Delete all subscribers', 'delete', 'delete_subscribers', false, array(
+					'onclick' => 'return confirm("Are you sure you want to delete all the subscribers?");'
+				)); ?>
+			</form>
 		</div>
-		<?php
-	}
+
+		<style type="text/css">
+			.wp-core-ui .button.delete {
+				float: right;
+				color: #fff;
+				border-color: #d54e21;
+				background: #d54e21;
+			}
+			.wp-core-ui .button.delete:hover,
+			.wp-core-ui .button.delete:focus {
+				border-color: #c2471e;
+				background: #c2471e;
+			}
+			.wp-core-ui .button.delete:focus {
+				box-shadow: 0 0 0 1px #fff, 0 0 0 3px #d54e21;
+			}
+		</style>
+	<?php }
 
 	/**
 	 * Generates a text field in settings page
 	 */
-	public function do_text_field($args){
+	public function do_text_field($args) {
 		?>
 		<input type="text"
 			id="<?php echo $args['name']; ?>"
@@ -146,7 +166,7 @@ class BCC_Signon {
 	/**
 	 * Generates a checkbox field in settings page
 	 */
-	public function do_checkbox_field($args){
+	public function do_checkbox_field($args) {
 		?>
 		<input type="checkbox"
 			id="<?php echo $args['name']; ?>"
@@ -178,7 +198,7 @@ class BCC_Signon {
 	/**
 	 * Get access_token of logged in user.
 	 */
-	public static function get_access_token(){
+	public static function get_access_token() {
 		$user_id = get_current_user_id();
 		if ( empty($user_id) ) {
 			return '';
@@ -190,6 +210,22 @@ class BCC_Signon {
 		}
 
 		return $tokens['access_token'];
+	}
+
+	/**
+     * Delete all subscribers
+     */
+	public static function delete_subscribers() {
+		$all_subscribers = get_users('role=subscriber');
+
+		foreach ($all_subscribers as $subscriber) {
+			$user_meta = get_userdata($subscriber->ID);
+			$user_roles = $user_meta->roles;
+
+			if ( count($user_roles) == 1 && $user_roles[0] == 'subscriber' ) {
+				wp_delete_user($subscriber->ID);
+			}
+		}
 	}
 }
 
