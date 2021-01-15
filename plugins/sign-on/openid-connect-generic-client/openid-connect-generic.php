@@ -206,7 +206,7 @@ class OpenID_Connect_Generic {
 			)
 		);
 
-		return OpenID_Connect_Generic::check_regexes($url, $unprotected);
+		return OpenID_Connect_Generic::match_regexes($url, $unprotected);
 	}
 
 	/**
@@ -223,10 +223,10 @@ class OpenID_Connect_Generic {
 			)
 		);
 
-		return OpenID_Connect_Generic::check_regexes($url, $protected);
+		return OpenID_Connect_Generic::match_regexes($url, $protected);
 	}
 
-	function check_regexes($url, $regexes) {
+	function match_regexes($url, $regexes) {
 		foreach ($regexes as $regex) {
 			$default_error_reporting = error_reporting(0);
 

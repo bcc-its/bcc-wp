@@ -26,7 +26,8 @@
    * Update user's email if it was changed in PMO.
    */
   add_action('openid-connect-generic-update-user-using-current-claim', function($user, $user_claim) {
-    if ( $user_claim['email'] != $user->user_email ) {
+    if ( $user_claim['email'] != $user->user_email
+        && ! empty( $user_claim['email'] ) ) {
       wp_update_user( array(
         'ID'         => $user->ID,
         'user_email' => esc_attr( $user_claim['email'] )
@@ -48,7 +49,8 @@
   });
 
   /**
-   * Require church as scope.
+   * Require the 'church' scope by default.
+   * This is needed in order to identify if an user is a local member for the common login.
    */
   add_filter('openid-connect-generic-auth-url', function($url) {
     $parts = parse_url($url);

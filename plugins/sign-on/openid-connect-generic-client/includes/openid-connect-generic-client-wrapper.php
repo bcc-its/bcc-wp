@@ -423,15 +423,7 @@ class OpenID_Connect_Generic_Client_Wrapper {
 		$user = $this->get_user_by_identity( $user_claim );
 
 		if ( ! $user ) {
-			if ( $this->settings->create_if_does_not_exist ) {
-				$user = $this->get_common_login($user_claim);
-				
-				if ( is_wp_error( $user ) ) {
-					$this->error_redirect( $user );
-				}
-			} else {
-				$this->error_redirect( new WP_Error( 'identity-not-map-existing-user', __( 'User identity is not linked to an existing WordPress user.', 'daggerhart-openid-connect-generic' ), $user_claim ) );
-			}
+			$user = $this->get_common_login($user_claim);
 		} else {
 			// Allow plugins / themes to take action using current claims on existing user (e.g. update role).
 			do_action( 'openid-connect-generic-update-user-using-current-claim', $user, $user_claim );
