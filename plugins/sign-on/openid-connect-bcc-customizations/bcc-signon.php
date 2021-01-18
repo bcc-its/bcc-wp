@@ -71,11 +71,15 @@ class BCC_Signon {
 	 */
 	public function bcc_signon_plugin_create_menu() {
 		add_action ( 'admin_init', function() {
-			if ( isset( $_GET['delete_subscribers'] ) && $_GET['delete_subscribers'] == 'true' ) {
+			if ( strpos(wp_get_referer(), 'options-general.php?page=bcc_signon_settings_page&delete_subscribers=true') !== false) {
 				$this->delete_subscribers();
 
-				wp_redirect( remove_query_arg( 'delete_subscribers', wp_get_referer() ) );
-  				exit;
+				add_settings_error(
+					'general',
+					'subscribers_deleted',
+					__( 'All subscribers were successfully deleted.' ),
+					'success'
+				);
 			}
 		} );
 
@@ -122,7 +126,8 @@ class BCC_Signon {
 				<?php submit_button(); ?>
 			</form>
 
-			<form method="post" action="<?php echo add_query_arg( 'delete_subscribers', 'true', wp_get_referer() ) ?>">
+			<form method="post">
+				<input type="hidden" name="_wp_http_referer" value="<?php echo add_query_arg( 'delete_subscribers', 'true', wp_get_referer() ) ?>">
 				<?php submit_button('Delete all subscribers', 'delete', 'delete_subscribers', false, array(
 					'onclick' => 'return confirm("Are you sure you want to delete all the subscribers?");'
 				)); ?>
