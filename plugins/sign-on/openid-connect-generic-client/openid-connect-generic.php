@@ -406,7 +406,7 @@ class OpenID_Connect_Generic {
 				'alternate_redirect_uri' => 0,
 				'token_refresh_enable' => 1,
 				'link_existing_users' => 0,
-				'create_if_does_not_exist' => 1,
+				'create_if_does_not_exist' => 0,
 				'redirect_user_back' => 0,
 				'redirect_on_logout' => 1,
 				'enable_logging'  => 0,

@@ -221,6 +221,9 @@ class BCC_Signon {
      * Delete all subscribers
      */
 	public static function delete_subscribers() {
+		if ( ! current_user_can('administrator') )
+			return;
+
 		$all_subscribers = get_users('role=subscriber');
 
 		foreach ($all_subscribers as $subscriber) {

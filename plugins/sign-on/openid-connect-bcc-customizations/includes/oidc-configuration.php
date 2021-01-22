@@ -33,7 +33,7 @@ function bcc_settings() {
 
 		// plugin settings
 		'link_existing_users' => 1,
-		'create_if_does_not_exist' => 1,
+		'create_if_does_not_exist' => 0,
 		'redirect_user_back' => 1,
 		'redirect_on_logout' => 1,
 	);
