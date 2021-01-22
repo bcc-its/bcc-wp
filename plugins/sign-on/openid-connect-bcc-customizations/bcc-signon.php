@@ -1,11 +1,11 @@
 <?php
 
 class BCC_Signon {
-	
 	protected $bcc_auth_domain;
 	protected $private_newsfeed_link;
 	protected $private_newsfeeds;
 	protected $bcc_topbar;
+	protected $bcc_local_church;
 	protected $option_name = "bcc-signon-plugin-settings-group";
 	protected $options_page_name = "bcc_signon_settings_page";
 
@@ -23,8 +23,8 @@ class BCC_Signon {
 		}
 
 		$this->bcc_topbar = get_option('bcc_topbar');
-
 		$this->private_newsfeeds = get_option('private_newsfeeds');
+		$this->bcc_local_church = get_option('bcc_local_church');
 
 		$this->load_dependencies();
 		add_action('admin_menu', array ($this, 'bcc_signon_plugin_create_menu'));
@@ -33,14 +33,10 @@ class BCC_Signon {
 	/**
 	 * Helper to create the GUID
 	 */
-	private function createGUID()
-	{
-		if (function_exists('com_create_guid'))
-		{
+	private function createGUID() {
+		if (function_exists('com_create_guid')) {
 			return com_create_guid();
-		}
-		else
-		{
+		} else {
 			mt_srand((double)microtime()*10000);
 			//optional for php 4.2.0 and up.
 			$set_charid = strtoupper(md5(uniqid(rand(), true)));
@@ -67,61 +63,99 @@ class BCC_Signon {
 		include_once plugin_dir_path( dirname( __FILE__) ) . 'openid-connect-bcc-customizations/includes/oidc-configuration.php';
 		include_once plugin_dir_path( dirname( __FILE__) ) . 'openid-connect-bcc-customizations/includes/privacy-settings.php';
 		include_once plugin_dir_path( dirname( __FILE__) ) . 'openid-connect-bcc-customizations/includes/widgets.php';
-		include_once plugin_dir_path( dirname( __FILE__) ) . 'openid-connect-bcc-customizations/includes/signin.php';
+		include_once plugin_dir_path( dirname( __FILE__) ) . 'openid-connect-bcc-customizations/includes/snippets.php';
 	}
 
 	/**
 	 * Create the menu item
 	 */
 	public function bcc_signon_plugin_create_menu() {
+		add_action ( 'admin_init', function() {
+			if ( strpos(wp_get_referer(), 'options-general.php?page=bcc_signon_settings_page&delete_subscribers=true') !== false) {
+				$this->delete_subscribers();
+
+				add_settings_error(
+					'general',
+					'subscribers_deleted',
+					__( 'All subscribers were successfully deleted.' ),
+					'success'
+				);
+			}
+		} );
+
 		register_setting( $this->option_name, 'bcc_auth_domain' );
 		register_setting( $this->option_name, 'private_newsfeeds' );
 		register_setting( $this->option_name, 'bcc_topbar' );
-		add_options_page('BCC Signon', 'BCC Signon', 'manage_options', $this->options_page_name, array($this, $this->options_page_name));
-		add_action( 'admin_init', function(){
+		register_setting( $this->option_name, 'bcc_local_church' );
+		add_options_page( 'BCC Signon', 'BCC Signon', 'manage_options', $this->options_page_name, array($this, $this->options_page_name) );
+
+		add_action( 'admin_init', function() {
 			/* Sections */
-			add_settings_section( 'oidc', 'OpenId Connect', function(){} , $this->options_page_name);
-			add_settings_section( 'newsfeed', 'NewsFeed', function(){} , $this->options_page_name);
-			add_settings_section( 'topbar', 'TopBar', function(){} , $this->options_page_name);
+			add_settings_section( 'oidc', 'OpenId Connect', function(){}, $this->options_page_name );
+			add_settings_section( 'newsfeed', 'NewsFeed', function(){}, $this->options_page_name );
+			add_settings_section( 'topbar', 'TopBar', function(){}, $this->options_page_name );
+			add_settings_section( 'identification', 'Identification', function(){}, $this->options_page_name );
 
 			/* Fields */
-			add_settings_field('bcc_auth_domain', "BCC Signon URL", array ($this, 'do_text_field'), $this->options_page_name, 'oidc', 
+			add_settings_field('bcc_auth_domain', "BCC Signon URL", array($this, 'do_text_field'), $this->options_page_name, 'oidc', 
 				array('name' => 'bcc_auth_domain', 'value' => $this->bcc_auth_domain, 'readonly' => 1));
-			add_settings_field('private_newsfeeds', "Enable Private Newsfeeds", array ($this, 'do_checkbox_field'), $this->options_page_name, 'newsfeed', 
+			add_settings_field('private_newsfeeds', "Enable Private Newsfeeds", array($this, 'do_checkbox_field'), $this->options_page_name, 'newsfeed', 
 				array('name' => 'private_newsfeeds', 'value' => $this->private_newsfeeds, 
 				'description' => 'This makes the newsfeed of your site accessible only via the <code>Private newsfeed link</code> from below.'));
 			add_settings_field('private_newsfeed_link', "Private newsfeed link", array ($this, 'do_text_field'), $this->options_page_name, 'newsfeed', 
 				array('name' => 'private_newsfeed_link', 'value' => ($this->private_newsfeeds ? get_site_url() . get_private_link_feed() : ''), 'readonly' => 1,
 				'description' => 'Please share this URL with BCC to integrate your news into the BCC Portal.'));
-			add_settings_field('bcc_topbar', "Enable TopBar", array ($this, 'do_checkbox_field'), $this->options_page_name, 'topbar', 
+			add_settings_field('bcc_topbar', "Enable TopBar", array($this, 'do_checkbox_field'), $this->options_page_name, 'topbar', 
 				array('name' => 'bcc_topbar', 'value' => $this->bcc_topbar, 
-				'description' => 'This shows BCCs topbar on your website: read more on developer.bcc.no.'));
-		});
+				'description' => 'This shows BCCs topbar on your website.'));
+			add_settings_field('bcc_local_church', "Local church", array($this, 'do_text_field'), $this->options_page_name, 'identification', 
+				array('name' => 'bcc_local_church', 'value' => $this->bcc_local_church,
+				'description' => 'Type in your local church name. Read more on <a href="https://developer.bcc.no/docs/bcc-signon-wordpress/plugin-configuration" target="_blank">developer.bcc.no</a>.'));
+		} );
 	}
 
 	/**
 	 * Creates the settings page
 	 */
-	public function bcc_signon_settings_page() {
-		?>
+	public function bcc_signon_settings_page() { ?>
 		<div class="wrap">
-		<h1>BCC Signon Settings</h1>
+			<h1>BCC Signon Settings</h1>
+			<form method="post" action="options.php">
+				<?php settings_fields( $this->option_name); ?>
+				<?php do_settings_sections($this->options_page_name ); ?>
+				<?php submit_button(); ?>
+			</form>
 
-		<form method="post" action="options.php">
-
-		<?php settings_fields( $this->option_name); ?>
-		<?php do_settings_sections($this->options_page_name ); ?>
-		<?php submit_button(); ?>
-
-		</form>
+			<form method="post">
+				<input type="hidden" name="_wp_http_referer" value="<?php echo add_query_arg( 'delete_subscribers', 'true', wp_get_referer() ) ?>">
+				<?php submit_button('Delete all subscribers', 'delete', 'delete_subscribers', false, array(
+					'onclick' => 'return confirm("Are you sure you want to delete all the subscribers?");'
+				)); ?>
+			</form>
 		</div>
-		<?php
-	}
+
+		<style type="text/css">
+			.wp-core-ui .button.delete {
+				float: right;
+				color: #fff;
+				border-color: #d54e21;
+				background: #d54e21;
+			}
+			.wp-core-ui .button.delete:hover,
+			.wp-core-ui .button.delete:focus {
+				border-color: #c2471e;
+				background: #c2471e;
+			}
+			.wp-core-ui .button.delete:focus {
+				box-shadow: 0 0 0 1px #fff, 0 0 0 3px #d54e21;
+			}
+		</style>
+	<?php }
 
 	/**
 	 * Generates a text field in settings page
 	 */
-	public function do_text_field($args){
+	public function do_text_field($args) {
 		?>
 		<input type="text"
 			id="<?php echo $args['name']; ?>"
@@ -137,7 +171,7 @@ class BCC_Signon {
 	/**
 	 * Generates a checkbox field in settings page
 	 */
-	public function do_checkbox_field($args){
+	public function do_checkbox_field($args) {
 		?>
 		<input type="checkbox"
 			id="<?php echo $args['name']; ?>"
@@ -153,15 +187,15 @@ class BCC_Signon {
 	 * Generate the description for a field
 	 */
 	public function do_field_description($args) {
-		if (isset( $args['description'])):
+		if (isset( $args['description'])) :
 		?>
-		<p class="description">
-			<?php print $args['description']; ?>
-			<?php if ( isset( $args['example'] ) ) : ?>
-				<br/><strong><?php _e( 'Example' ); ?>: </strong>
-				<code><?php print $args['example']; ?></code>
-			<?php endif; ?>
-		</p>
+			<p class="description">
+				<?php print $args['description']; ?>
+				<?php if ( isset( $args['example'] ) ) : ?>
+					<br/><strong><?php _e( 'Example' ); ?>: </strong>
+					<code><?php print $args['example']; ?></code>
+				<?php endif; ?>
+			</p>
 		<?php
 		endif;
 	}
@@ -169,20 +203,41 @@ class BCC_Signon {
 	/**
 	 * Get access_token of logged in user.
 	 */
-	public static function get_access_token(){
-	$user_id = get_current_user_id();
-	if ( empty( $user_id ) ){
-		return '';
-	}
-	$tokens = get_user_meta($user_id, 'openid-connect-generic-last-token-response', true);
-	if (empty( $tokens )) {
-		return '';
-	}
-	$access_token = $tokens['access_token'];
+	public static function get_access_token() {
+		$user_id = get_current_user_id();
+		if ( empty($user_id) ) {
+			return '';
+		}
 
-	return $access_token;
+		$tokens = get_user_meta($user_id, 'openid-connect-generic-last-token-response', true);
+		if ( empty($tokens) ) {
+			return '';
+		}
+
+		return $tokens['access_token'];
+	}
+
+	/**
+     * Delete all subscribers
+     */
+	public static function delete_subscribers() {
+		if ( ! current_user_can('administrator') )
+			return;
+
+		$all_subscribers = get_users('role=subscriber');
+
+		foreach ($all_subscribers as $subscriber) {
+			$user_meta = get_userdata($subscriber->ID);
+			$user_roles = $user_meta->roles;
+
+			// Check if 'subscriber' is the only role the user has
+			if ( count($user_roles) == 1 && $user_roles[0] == 'subscriber' ) {
+				wp_delete_user($subscriber->ID);
+			}
+		}
 	}
 }
 
 $plugin = new BCC_Signon();
+
 ?>

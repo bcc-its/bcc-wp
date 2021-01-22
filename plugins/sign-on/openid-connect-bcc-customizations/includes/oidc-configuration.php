@@ -33,7 +33,7 @@ function bcc_settings() {
 
 		// plugin settings
 		'link_existing_users' => 1,
-		'create_if_does_not_exist' => 1,
+		'create_if_does_not_exist' => 0,
 		'redirect_user_back' => 1,
 		'redirect_on_logout' => 1,
 	);
@@ -45,7 +45,7 @@ function custom_settings() {
 		'login_type'        => 'auto',
 		'client_id'         => '',
 		'client_secret'     => '',
-		'scope'             => 'email openid profile',
+		'scope'             => 'email openid profile church',
 
 		// plugin settings
 		'enforce_privacy' => 1,
@@ -60,8 +60,8 @@ function custom_settings() {
 /**
  * Handle openid connect errors better by redirecting to the 'bccAuthDomain'
  */
-add_action( 'wp_authenticate', 'handle_openid_error');
-function handle_openid_error(){
+add_action( 'wp_authenticate', 'handle_openid_error' );
+function handle_openid_error() {
 	$error = isset($_GET['login-error']) ? $_GET["login-error"] : '';
 	switch ($error){
 		case "unknown-error":

@@ -182,13 +182,14 @@ class OpenID_Connect_Generic {
 	function enforce_privacy_redirect() {
 		if ( $this->settings->enforce_privacy 
 				&& ! OpenID_Connect_Generic::is_unprotected_url()
-				&& ! is_user_logged_in() )
+				&& ! is_user_logged_in() ) {
 			OpenID_Connect_Generic::redirect_to_login_page();
-
+		}
 		else if ( ! $this->settings->enforce_privacy
 				&& OpenID_Connect_Generic::is_protected_url()
-				&& ! is_user_logged_in() )
+				&& ! is_user_logged_in() ) {
 			OpenID_Connect_Generic::redirect_to_login_page();
+		}
 	}
 
 	/**
@@ -198,9 +199,14 @@ class OpenID_Connect_Generic {
 		global $wp;
 		
 		$url = home_url(add_query_arg(array($_GET), $wp->request));
-		$unprotected = array_map('trim', apply_filters('oidc_unprotected_urls', explode("\n", $this->settings->unprotected_urls)));
+		$unprotected = array_map('trim',
+			apply_filters(
+				'oidc_unprotected_urls',
+				explode("\n", $this->settings->unprotected_urls)
+			)
+		);
 
-		return OpenID_Connect_Generic::check_regexes($url, $unprotected);
+		return OpenID_Connect_Generic::match_regexes($url, $unprotected);
 	}
 
 	/**
@@ -210,12 +216,17 @@ class OpenID_Connect_Generic {
 		global $wp;
 		
 		$url = home_url(add_query_arg(array($_GET), $wp->request));
-		$protected = apply_filters('oidc_protected_urls', explode("\n", $this->settings->protected_urls));
+		$protected = array_map('trim',
+			apply_filters(
+				'oidc_protected_urls',
+				explode("\n", $this->settings->protected_urls)
+			)
+		);
 
-		return OpenID_Connect_Generic::check_regexes($url, $protected);
+		return OpenID_Connect_Generic::match_regexes($url, $protected);
 	}
 
-	function check_regexes($url, $regexes) {
+	function match_regexes($url, $regexes) {
 		foreach ($regexes as $regex) {
 			$default_error_reporting = error_reporting(0);
 
@@ -246,7 +257,9 @@ class OpenID_Connect_Generic {
 	 * @return mixed
 	 */
 	function enforce_privacy_feeds( $content ) {
-		if ( $this->settings->enforce_privacy && ! is_user_logged_in() ) {
+		if ( $this->settings->enforce_privacy
+			&& ! OpenID_Connect_Generic::is_unprotected_url()
+			&& ! is_user_logged_in() ) {
 			$content = __( 'Private site', 'daggerhart-openid-connect-generic' );
 		}
 		return $content;
@@ -259,7 +272,6 @@ class OpenID_Connect_Generic {
 	 */
 	function upgrade() {
 		$last_version = get_option( 'openid-connect-generic-plugin-version', 0 );
-		$settings = $this->settings;
 
 		// We keep BCC defined settings
 		$settings = new OpenID_Connect_Generic_Option_Settings('openid_connect_generic_settings', bcc_settings(), false);
@@ -272,7 +284,7 @@ class OpenID_Connect_Generic {
 			// Update the stored version number.
 			update_option( 'openid-connect-generic-plugin-version', self::VERSION );
 		}
-	}
+    }
 
 	/**
 	 * Expire state transients by attempting to access them and allowing the
@@ -394,7 +406,7 @@ class OpenID_Connect_Generic {
 				'alternate_redirect_uri' => 0,
 				'token_refresh_enable' => 1,
 				'link_existing_users' => 0,
-				'create_if_does_not_exist' => 1,
+				'create_if_does_not_exist' => 0,
 				'redirect_user_back' => 0,
 				'redirect_on_logout' => 1,
 				'enable_logging'  => 0,

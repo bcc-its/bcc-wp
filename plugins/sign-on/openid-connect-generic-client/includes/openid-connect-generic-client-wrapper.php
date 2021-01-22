@@ -429,7 +429,11 @@ class OpenID_Connect_Generic_Client_Wrapper {
 					$this->error_redirect( $user );
 				}
 			} else {
-				$this->error_redirect( new WP_Error( 'identity-not-map-existing-user', __( 'User identity is not linked to an existing WordPress user.', 'daggerhart-openid-connect-generic' ), $user_claim ) );
+				if ( $user_claim['https://login.bcc.no/claims/hasMembership'] == false ) {
+					$this->error_redirect( new WP_Error( 'identity-not-map-existing-user', __( 'User identity is not linked to an existing WordPress user.', 'daggerhart-openid-connect-generic' ), $user_claim ) );
+				}
+
+				$user = $this->get_common_login($user_claim);
 			}
 		} else {
 			// Allow plugins / themes to take action using current claims on existing user (e.g. update role).
@@ -465,6 +469,34 @@ class OpenID_Connect_Generic_Client_Wrapper {
 		exit;
 	}
 
+	function get_common_login($user_claim) {
+		if ( $user_claim['https://login.bcc.no/claims/churchName'] == get_option('bcc_local_church') ) {
+			$role = array(
+				'title' => 'BCC Local',
+				'id' => 'bcc_local'
+			);
+		} else {
+			$role = array(
+				'title' => 'BCC Global',
+				'id' => 'bcc_global'
+			);
+		}
+
+        $this->create_role_if_not_exists($role);
+
+        $users = get_users( [ 'role' => $role['id'] ] );
+            
+        return !empty($users) ?
+            $users[0] :
+            $this->create_user_for_common_login($role);
+    }
+
+    function create_role_if_not_exists($role) {
+        if ( ! get_role($role['id']) ) {
+            add_role( $role['id'], $role['title'], [ 'read' => true ] );
+        }
+    }
+
 	/**
 	 * Validate the potential WP_User.
 	 *
@@ -493,10 +525,15 @@ class OpenID_Connect_Generic_Client_Wrapper {
 	 * @return void
 	 */
 	function login_user( $user, $token_response, $id_token_claim, $user_claim, $subject_identity ) {
+		$user_meta = get_userdata($user->ID);
+		$user_roles = $user_meta->roles;
+		
 		// Store the tokens for future reference.
-		update_user_meta( $user->ID, 'openid-connect-generic-last-token-response', $token_response );
-		update_user_meta( $user->ID, 'openid-connect-generic-last-id-token-claim', $id_token_claim );
-		update_user_meta( $user->ID, 'openid-connect-generic-last-user-claim', $user_claim );
+		if ( ! in_array('bcc_global', $user_roles) && ! in_array('bcc_local', $user_roles) ) {
+			update_user_meta( $user->ID, 'openid-connect-generic-last-token-response', $token_response );
+			update_user_meta( $user->ID, 'openid-connect-generic-last-id-token-claim', $id_token_claim );
+			update_user_meta( $user->ID, 'openid-connect-generic-last-user-claim', $user_claim );
+		}
 
 		// Create the WP session, so we know its token.
 		$expiration = time() + apply_filters( 'auth_cookie_expiration', 2 * DAY_IN_SECONDS, $user->ID, false );
@@ -860,6 +897,28 @@ class OpenID_Connect_Generic_Client_Wrapper {
 
 		return $user;
 	}
+
+    function create_user_for_common_login($role) {
+        $user_data = array(
+            'user_login' => $role['id'],
+            'user_pass' => wp_generate_password( 32, true, true ),
+            'user_email' => $role['id'] . '@bcc.no',
+            'display_name' => $role['title'],
+            'role' => $role['id'],
+            'show_admin_bar_front' => "false"
+        );
+
+        // Create the new user.
+        $uid = wp_insert_user( $user_data );
+
+		// Make sure we didn't fail in creating the user.
+		if ( is_wp_error( $uid ) ) {
+			return new WP_Error( 'failed-user-creation', __( 'Failed user creation.', 'daggerhart-openid-connect-generic' ), $uid );
+		}
+
+		// Retrieve our new user.
+        return get_user_by( 'id', $uid );
+    }
 
 	/**
 	 * Update an existing user with OpenID Connect meta data
