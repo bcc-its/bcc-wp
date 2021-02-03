@@ -356,7 +356,7 @@ class OpenID_Connect_Generic_Settings_Page {
 			),
 			'create_if_does_not_exist'   => array(
 				'title'       => __( 'Create user if does not exist', 'daggerhart-openid-connect-generic' ),
-				'description' => __( 'If the user identity is not link to an existing Wordpress user, it is created. If this setting is not enabled and if the user authenticates with an account which is not link to an existing Wordpress user then the authentication failed', 'daggerhart-openid-connect-generic' ),
+				'description' => __( 'When checked, it creates a new user for each member. If this setting is not enabled it will use the common login (local and global), but if the member does not have an active membership then the authentication fails.', 'daggerhart-openid-connect-generic' ),
 				'type'        => 'checkbox',
 				'section'     => 'user_settings',
 				'readonly'    => 1
