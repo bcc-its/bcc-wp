@@ -477,6 +477,8 @@ class OpenID_Connect_Generic_Client_Wrapper {
 		return array(
 			"sub" => $user_claim['sub'],
 			"email" => $user_claim['https://login.bcc.no/claims/personId'] . '@bcc.no',
+			"given_name" => $user_claim['https://login.bcc.no/claims/personId'],
+			"family_name" => '',
 			"https://login.bcc.no/claims/personId" => $user_claim['https://login.bcc.no/claims/personId'],
 			"https://login.bcc.no/claims/hasMembership" => $user_claim['https://login.bcc.no/claims/hasMembership'],
 			"https://login.bcc.no/claims/churchName" => $user_claim['https://login.bcc.no/claims/churchName'],
