@@ -25,7 +25,7 @@ function bcc_settings() {
 		'no_sslverify'    => 0,
 		'http_request_timeout' => 5,
 		'identity_key'    => 'https://login.bcc.no/claims/personId',
-		'nickname_key'    => 'preferred_username',
+		'nickname_key'    => 'https://login.bcc.no/claims/personId',
 		'email_format'       => '{email}',
 		'displayname_format' => '{given_name} {family_name}',
 		'identify_with_username' => true,

@@ -419,6 +419,10 @@ class OpenID_Connect_Generic_Client_Wrapper {
 		 * -
 		 * Request is authenticated and authorized - start user handling
 		 */
+
+		// Limit which claims we save for the user
+		$user_claim = $this->limit_user_claims($user_claim);
+
 		$subject_identity = $client->get_subject_identity( $id_token_claim );
 		$user = $this->get_user_by_identity( $user_claim );
 
@@ -467,6 +471,20 @@ class OpenID_Connect_Generic_Client_Wrapper {
 		}
 
 		exit;
+	}
+
+	function limit_user_claims($user_claim) {
+		return array(
+			"sub" => $user_claim['sub'],
+			"email" => $user_claim['https://login.bcc.no/claims/personId'] . '@bcc.no',
+			"given_name" => $user_claim['https://login.bcc.no/claims/personId'],
+			"family_name" => '',
+			"https://login.bcc.no/claims/personId" => $user_claim['https://login.bcc.no/claims/personId'],
+			"https://login.bcc.no/claims/hasMembership" => $user_claim['https://login.bcc.no/claims/hasMembership'],
+			"https://login.bcc.no/claims/churchName" => $user_claim['https://login.bcc.no/claims/churchName'],
+			"https://login.bcc.no/claims/CountryIso2Code" => $user_claim['https://login.bcc.no/claims/CountryIso2Code'],
+			"https://members.bcc.no/app_metadata" => $user_claim['https://members.bcc.no/app_metadata'],
+		);
 	}
 
 	function get_common_login($user_claim) {
