@@ -359,7 +359,7 @@ class OpenID_Connect_Generic_Settings_Page {
 				'description' => __( 'When checked, it creates a new user for each member. If this setting is not enabled it will use the common login (local and global), but if the member does not have an active membership then the authentication fails.', 'daggerhart-openid-connect-generic' ),
 				'type'        => 'checkbox',
 				'section'     => 'user_settings',
-				'readonly'    => 1
+				'readonly'    => 0
 			),
 			'redirect_user_back'   => array(
 				'title'       => __( 'Redirect Back to Origin Page', 'daggerhart-openid-connect-generic' ),

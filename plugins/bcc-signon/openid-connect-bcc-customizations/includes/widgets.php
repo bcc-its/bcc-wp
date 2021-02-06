@@ -28,7 +28,7 @@ function get_access_token_url(){
     $plugin_dir = constant( 'WP_PLUGIN_DIR' );
     $root_dir = get_home_path();
     $relative_plugin_dir = substr($plugin_dir, strlen($root_dir));
-    return $relative_plugin_dir . '/sign-on/openid-connect-bcc-customizations/access-token.php';
+    return $relative_plugin_dir . '/bcc-signon/openid-connect-bcc-customizations/access-token.php';
 }
 
 /** Topbar */
