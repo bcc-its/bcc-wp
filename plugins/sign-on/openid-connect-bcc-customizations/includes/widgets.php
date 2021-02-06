@@ -24,11 +24,21 @@ if (get_option('bcc_topbar') == 1) {
 
 /** Widgets */
 
+function get_access_token_url(){
+    $plugin_dir = constant( 'WP_PLUGIN_DIR' );
+    $root_dir = get_home_path();
+    $relative_plugin_dir = substr($plugin_dir, strlen($root_dir));
+    return $relative_plugin_dir . '/sign-on/openid-connect-bcc-customizations/access-token.php';
+}
+
 /** Topbar */
 function add_topbar() {
     if (!is_user_logged_in()) return;
-    
-    $access_token = BCC_Signon::get_access_token();
+
+    echo '<script id="script-bcc-topbar" data-authentication-type="WebApp" data-authentication-location="'. get_access_token_url() . '" src="https://widgets.bcc.no/widgets/TopbarJs"></script>';
+    return;
+
+    /* $access_token = BCC_Signon::get_access_token();
 
     if (empty( $access_token )) {
         echo '<script type="text/javascript" id="script-bcc-topbar" src="https://widgets.bcc.no/widgets/topbarjs" data-authentication-type="none"></script>';
@@ -41,18 +51,19 @@ function add_topbar() {
     }
       
     echo ('<script type="text/javascript" id="script-bcc-topbar" src="https://widgets.bcc.no/widgets/topbarjs" data-authentication-type="inline-access-token" data-access-token=' . $access_token .'></script>');
+    
+    */
 };
 
 
 /** Week calendar */
 add_shortcode( 'bcc-widgets-week-calendar', function ($attributes) {
-    $access_token = BCC_Signon::get_access_token();
 
     // normalize attribute keys, lowercase
     $attributes = array_change_key_case((array)$attributes, CASE_LOWER);
 
     $html =  '<div id="bcc-calendar-week"></div>';
-    $html .= '<script async="true" id="script-bcc-calendar-week" data-authentication-type="inline-access-token" data-access-token="' . $access_token .'" ';
+    $html .= '<script async="true" id="script-bcc-calendar-week" data-authentication-type="WebApp" data-authentication-location="'. get_access_token_url() . '" ';
     $html .= 'data-language="' . $attributes['language'] . '" data-maxdays="' .  $attributes['maxdays'] . '" data-maxappointments="' . $attributes['maxappointments'] . '" ';
     $html .= 'data-calendars="' . $attributes['calendars'] .'" data-fullcalendarurl="' .  $attributes['fullcalendarurl'] .'" ';
     $html .= 'src="https://widgets.bcc.no/widgets/CalendarWeekJs"></script>';
@@ -63,13 +74,12 @@ add_shortcode( 'bcc-widgets-week-calendar', function ($attributes) {
 
 /** Month calendar */
 add_shortcode( 'bcc-widgets-month-calendar', function ($attributes) {
-    $access_token = BCC_Signon::get_access_token();
-    
+
     // normalize attribute keys, lowercase
     $attributes = array_change_key_case((array)$attributes, CASE_LOWER);
 
     $html =  '<div id="bcc-calendar-month"></div>';
-    $html .= '<script async="true" id="script-bcc-calendar-month" data-authentication-type="inline-access-token" data-access-token="' . $access_token .'" ';
+    $html .= '<script async="true" id="script-bcc-calendar-month" data-authentication-type="WebApp" data-authentication-location="'. get_access_token_url() . '" ';
     $html .= 'data-language="' . $attributes['language'] . '"';
     $html .= 'data-calendars="' . $attributes['calendars'] .'" ';
     $html .= 'src="https://widgets.bcc.no/widgets/CalendarMonthJs"></script>';
@@ -79,13 +89,12 @@ add_shortcode( 'bcc-widgets-month-calendar', function ($attributes) {
 
 /** Search */
 add_shortcode( 'bcc-widgets-search', function ($attributes) {
-    $access_token = BCC_Signon::get_access_token();
     
     // normalize attribute keys, lowercase
     $attributes = array_change_key_case((array)$attributes, CASE_LOWER);
 
     $html =  '<div id="bcc-search"></div>';
-    $html .= '<script async="true" id="script-bcc-search" data-authentication-type="inline-access-token" data-access-token="' . $access_token .'" ';
+    $html .= '<script async="true" id="script-bcc-search" data-authentication-type="WebApp" data-authentication-location="'. get_access_token_url() . '" ';
     $html .= 'data-language="' . $attributes['language'] . '"';
     $html .= 'data-hidesearchbox="' . $attributes['hidesearchbox'] .'" ';
     $html .= 'data-searchquery="' . $attributes['searchquery'] .'" ';
@@ -96,13 +105,12 @@ add_shortcode( 'bcc-widgets-search', function ($attributes) {
 
 /** TVGuide */
 add_shortcode( 'bcc-widgets-tvguide', function ($attributes) {
-    $access_token = BCC_Signon::get_access_token();
     
     // normalize attribute keys, lowercase
     $attributes = array_change_key_case((array)$attributes, CASE_LOWER);
 
     $html = '<div id="bcc-tvguide"></div>';
-    $html .= '<script async="true" id="script-bcc-tvguide" data-authentication-type="inline-access-token" data-access-token="' . $access_token .'" ';
+    $html .= '<script async="true" id="script-bcc-tvguide" data-authentication-type="WebApp" data-authentication-location="'. get_access_token_url() . '" ';
     $html .= 'data-language="' . $attributes['language'] . '" ';
     $html .= 'data-maxdays="' . $attributes['maxdays'] . '" src="https://widgets.bcc.no/widgets/TvGuideJs"></script>';
     
@@ -111,13 +119,12 @@ add_shortcode( 'bcc-widgets-tvguide', function ($attributes) {
 
 /** Birthday */
 add_shortcode( 'bcc-widgets-birthday', function ($attributes) {
-    $access_token = BCC_Signon::get_access_token();
 
     // normalize attribute keys, lowercase
     $attributes = array_change_key_case((array)$attributes, CASE_LOWER);
 
     $html = '<div id="bcc-birthday"></div>';
-    $html .= '<script async="true" id="script-bcc-birthday" data-authentication-type="inline-access-token" data-access-token="' . $access_token .'" ';
+    $html .= '<script async="true" id="script-bcc-birthday" data-authentication-type="WebApp" data-authentication-location="'. get_access_token_url() . '" ';
     $html .= 'data-language="' . $attributes['language'] . '" ';
     $html .= 'data-churchname="' . $attributes['churchname'] . '" ';
     $html .= 'data-maxdays="' . $attributes['maxdays'] . '" ';

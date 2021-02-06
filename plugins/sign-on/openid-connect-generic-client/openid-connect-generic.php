@@ -180,25 +180,27 @@ class OpenID_Connect_Generic {
 	 * @return void
 	 */
 	function enforce_privacy_redirect() {
-		if ( $this->settings->enforce_privacy 
-				&& ! OpenID_Connect_Generic::is_unprotected_url()
-				&& ! is_user_logged_in() ) {
-			OpenID_Connect_Generic::redirect_to_login_page();
-		}
-		else if ( ! $this->settings->enforce_privacy
-				&& OpenID_Connect_Generic::is_protected_url()
-				&& ! is_user_logged_in() ) {
-			OpenID_Connect_Generic::redirect_to_login_page();
+		global $wp;
+		$url = home_url(add_query_arg(array($_GET), $wp->request));
+		if (!strpos($url, 'wp-login')) {
+			if ( $this->settings->enforce_privacy 
+					&& ! OpenID_Connect_Generic::is_unprotected_url($url)
+					&& ! is_user_logged_in() ) {
+				OpenID_Connect_Generic::redirect_to_login_page();
+			}
+			else if ( ! $this->settings->enforce_privacy
+					&& OpenID_Connect_Generic::is_protected_url($url)
+					&& ! is_user_logged_in() ) {
+				OpenID_Connect_Generic::redirect_to_login_page();
+			}
 		}
 	}
 
 	/**
 	 * Check if URL is on the list of unprotected URLs
 	 */
-	function is_unprotected_url() {
-		global $wp;
-		
-		$url = home_url(add_query_arg(array($_GET), $wp->request));
+	function is_unprotected_url($url) {
+
 		$unprotected = array_map('trim',
 			apply_filters(
 				'oidc_unprotected_urls',
@@ -212,10 +214,8 @@ class OpenID_Connect_Generic {
 	/**
 	 * Check if URL is on the list of protected URLs
 	 */
-	function is_protected_url() {
-		global $wp;
-		
-		$url = home_url(add_query_arg(array($_GET), $wp->request));
+	function is_protected_url($url) {
+
 		$protected = array_map('trim',
 			apply_filters(
 				'oidc_protected_urls',
@@ -424,7 +424,7 @@ class OpenID_Connect_Generic {
 		add_action( 'init', array( $plugin, 'init' ) );
 
 		// Privacy hooks.
-		add_action( 'template_redirect', array( $plugin, 'enforce_privacy_redirect' ), 0 );
+		add_action( 'init', array( $plugin, 'enforce_privacy_redirect' ), 0 );
 		add_filter( 'the_content_feed', array( $plugin, 'enforce_privacy_feeds' ), 999 );
 		add_filter( 'the_excerpt_rss', array( $plugin, 'enforce_privacy_feeds' ), 999 );
 		add_filter( 'comment_text_rss', array( $plugin, 'enforce_privacy_feeds' ), 999 );

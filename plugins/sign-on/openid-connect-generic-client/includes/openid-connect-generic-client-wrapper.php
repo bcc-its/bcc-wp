@@ -214,6 +214,11 @@ class OpenID_Connect_Generic_Client_Wrapper {
 			$this->error_redirect( $token_response );
 		}
 
+		// Save access token to session
+		if (!empty($token_response['access_token'])){
+			$_SESSION['oidc_access_token'] = $token_response['access_token'];
+		}
+
 		$this->save_refresh_token( $manager, $token, $token_response );
 	}
 
@@ -420,28 +425,24 @@ class OpenID_Connect_Generic_Client_Wrapper {
 		 * Request is authenticated and authorized - start user handling
 		 */
 
-		// Limit which claims we save for the user
-		$user_claim = $this->limit_user_claims($user_claim);
-
 		$subject_identity = $client->get_subject_identity( $id_token_claim );
 		$user = $this->get_user_by_identity( $user_claim );
-
+		
 		if ( ! $user ) {
 			if ( $this->settings->create_if_does_not_exist ) {
-				$user = $this->create_new_user( $subject_identity, $user_claim );
+				$user = $this->create_new_user( $subject_identity, $this->limit_user_claims($user_claim) );
 				if ( is_wp_error( $user ) ) {
 					$this->error_redirect( $user );
 				}
-			} else {
+			 } else {
 				if ( $user_claim['https://login.bcc.no/claims/hasMembership'] == false ) {
 					$this->error_redirect( new WP_Error( 'identity-not-map-existing-user', __( 'User identity is not linked to an existing WordPress user.', 'daggerhart-openid-connect-generic' ), $user_claim ) );
 				}
-
 				$user = $this->get_common_login($user_claim);
 			}
 		} else {
-			// Allow plugins / themes to take action using current claims on existing user (e.g. update role).
-			do_action( 'openid-connect-generic-update-user-using-current-claim', $user, $user_claim );
+			//// Allow plugins / themes to take action using current claims on existing user (e.g. update role).
+			//// do_action( 'openid-connect-generic-update-user-using-current-claim', $user, $user_claim );
 		}
 
 		// Validate the found / created user.
@@ -474,6 +475,7 @@ class OpenID_Connect_Generic_Client_Wrapper {
 	}
 
 	function limit_user_claims($user_claim) {
+
 		return array(
 			"sub" => $user_claim['sub'],
 			"email" => $user_claim['https://login.bcc.no/claims/personId'] . '@bcc.no',
@@ -490,17 +492,19 @@ class OpenID_Connect_Generic_Client_Wrapper {
 	function get_common_login($user_claim) {
 		if ( $user_claim['https://login.bcc.no/claims/churchName'] == get_option('bcc_local_church') ) {
 			$role = array(
-				'title' => 'BCC Local',
+				'title' => 'Local Member',
 				'id' => 'bcc_local'
 			);
 		} else {
 			$role = array(
-				'title' => 'BCC Global',
+				'title' => 'Global Member',
 				'id' => 'bcc_global'
 			);
 		}
 
-        $this->create_role_if_not_exists($role);
+		$this->create_role_if_not_exists($role);
+		
+		$access_token = $user_claim['access_token'];
 
         $users = get_users( [ 'role' => $role['id'] ] );
             
@@ -545,18 +549,21 @@ class OpenID_Connect_Generic_Client_Wrapper {
 	function login_user( $user, $token_response, $id_token_claim, $user_claim, $subject_identity ) {
 		$user_meta = get_userdata($user->ID);
 		$user_roles = $user_meta->roles;
-		
+
 		// Store the tokens for future reference.
-		if ( ! in_array('bcc_global', $user_roles) && ! in_array('bcc_local', $user_roles) ) {
-			update_user_meta( $user->ID, 'openid-connect-generic-last-token-response', $token_response );
-			update_user_meta( $user->ID, 'openid-connect-generic-last-id-token-claim', $id_token_claim );
-			update_user_meta( $user->ID, 'openid-connect-generic-last-user-claim', $user_claim );
-		}
+		//if ( ! in_array('bcc_global', $user_roles) && ! in_array('bcc_local', $user_roles) ) {
+		//	update_user_meta( $user->ID, 'openid-connect-generic-last-token-response', $token_response );
+		//	update_user_meta( $user->ID, 'openid-connect-generic-last-id-token-claim', $id_token_claim );
+		//	update_user_meta( $user->ID, 'openid-connect-generic-last-user-claim', $user_claim );
+		//}
 
 		// Create the WP session, so we know its token.
 		$expiration = time() + apply_filters( 'auth_cookie_expiration', 2 * DAY_IN_SECONDS, $user->ID, false );
 		$manager = WP_Session_Tokens::get_instance( $user->ID );
 		$token = $manager->create( $expiration );
+
+		// Save access token to session
+		$_SESSION['oidc_access_token'] = $token_response['access_token'];
 
 		// Save the refresh token in the session.
 		$this->save_refresh_token( $manager, $token, $token_response );
@@ -584,6 +591,10 @@ class OpenID_Connect_Generic_Client_Wrapper {
 			'refresh_token' => isset( $token_response['refresh_token'] ) ? $token_response['refresh_token'] : false,
 			'refresh_expires' => false,
 		);
+
+		// Save access token to session
+		$session[ 'oidc_access_token' ] = $token_response['access_token'];
+
 		if ( isset( $token_response['refresh_expires_in'] ) ) {
 			$refresh_expires_in = $token_response['refresh_expires_in'];
 			if ( $refresh_expires_in > 0 ) {
@@ -605,23 +616,50 @@ class OpenID_Connect_Generic_Client_Wrapper {
 	 */
 	function get_user_by_identity( $user_claim ){
 		$person_id = $user_claim["https://login.bcc.no/claims/personId"];
-		$person_id_serialized = 's:36:"https://login.bcc.no/claims/personId";i:' . $person_id;
+		$email = $user_claim['email'];
+		// $person_id_serialized = 's:36:"https://login.bcc.no/claims/personId";i:' . $person_id;
 
-		// look for user containing this person_id in it's openid-connect-generic-last-user-claim value
-		$user_query = new WP_User_Query( array(
-			'meta_query' => array(
-				array(
-					'key'   => 'openid-connect-generic-last-user-claim',
-					'value' => $person_id_serialized,
-					'compare' => 'LIKE'
-				)
-			)
-		) );
 
-		// If we found an existing users, grab the first one returned.
-		if ( $user_query->get_total() > 0 ) {
-			$users = $user_query->get_results();
-			return $users[0];
+		// 1. Lookup by person_id in user login field
+		if (!empty($person_id)) {
+			$user_query = new WP_User_Query( array(
+				'search' => $person_id,
+				'search_columns' => array( 'user_login' )
+			) );
+
+			// If we found an existing users, grab the first one returned.
+			if ( $user_query->get_total() > 0 ) {
+				$users = $user_query->get_results();
+				return $users[0];
+			}
+		}
+
+		// 2. Lookup by email
+		if (!empty($email)) {
+			$user_query = new WP_User_Query( array(
+				'search' => $email,
+				'search_columns' => array( 'user_email', 'user_login' )
+			) );
+
+			// If we found an existing users, grab the first one returned.
+			if ( $user_query->get_total() > 0 ) {
+				$users = $user_query->get_results();
+				return $users[0];
+			}
+		}
+
+		// 3. Lookup by email
+		if (!empty($email)) {
+			$user_query = new WP_User_Query( array(
+				'search' => $email,
+				'search_columns' => array( 'user_email', 'user_login' )
+			) );
+
+			// If we found an existing users, grab the first one returned.
+			if ( $user_query->get_total() > 0 ) {
+				$users = $user_query->get_results();
+				return $users[0];
+			}
 		}
 
 		return false;
@@ -780,6 +818,7 @@ class OpenID_Connect_Generic_Client_Wrapper {
 	 * @return \WP_Error | \WP_User
 	 */
 	function create_new_user( $subject_identity, $user_claim ) {
+
 		$user_claim = apply_filters( 'openid-connect-generic-alter-user-claim', $user_claim );
 
 		// Default username & email to the subject identity.

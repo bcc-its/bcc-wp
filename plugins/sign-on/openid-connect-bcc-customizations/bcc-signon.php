@@ -28,6 +28,27 @@ class BCC_Signon {
 
 		$this->load_dependencies();
 		add_action('admin_menu', array ($this, 'bcc_signon_plugin_create_menu'));
+
+		add_action('init', array ($this, 'start_session'), 1);
+		add_action('wp_authenticate ', array ($this, 'end_session'));
+		add_action('wp_logout', array ($this, 'end_session'));
+	}
+
+	
+	/**
+	 * Start PHP Session if not already started
+	 */
+	function start_session() {
+		if(!session_id()) {
+			session_start();
+		}
+	}
+
+	/**
+	 * End PHP session (e.g. after logout)
+	 */
+	function end_session() {
+		session_destroy ();
 	}
 
 	/**
@@ -204,17 +225,11 @@ class BCC_Signon {
 	 * Get access_token of logged in user.
 	 */
 	public static function get_access_token() {
-		$user_id = get_current_user_id();
-		if ( empty($user_id) ) {
+
+		if ( ! is_user_logged_in() ) {
 			return '';
 		}
-
-		$tokens = get_user_meta($user_id, 'openid-connect-generic-last-token-response', true);
-		if ( empty($tokens) ) {
-			return '';
-		}
-
-		return $tokens['access_token'];
+		return $_SESSION['oidc_access_token'];	
 	}
 
 	/**
