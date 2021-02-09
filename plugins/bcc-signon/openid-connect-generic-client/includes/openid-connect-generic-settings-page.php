@@ -356,7 +356,7 @@ class OpenID_Connect_Generic_Settings_Page {
 			),
 			'create_if_does_not_exist'   => array(
 				'title'       => __( 'Create user if does not exist', 'daggerhart-openid-connect-generic' ),
-				'description' => __( 'When checked, it creates a new user for each member. If this setting is not enabled it will use the common login (local and global), but if the member does not have an active membership then the authentication fails.', 'daggerhart-openid-connect-generic' ),
+				'description' => __( 'When checked, it creates a new user for each member. If this setting is not enabled it will use the common login (local and global), but if the member does not have an active membership then the authentication fails. <br><strong>NOTE: It is strongly DISCOURAGED to enable this function unless this is STRICTLY necessary since it may impact both performance and privacy regulations.</strong>', 'daggerhart-openid-connect-generic' ),
 				'type'        => 'checkbox',
 				'section'     => 'user_settings',
 				'readonly'    => 0

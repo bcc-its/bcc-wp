@@ -32,6 +32,14 @@ class BCC_Signon {
 		add_action('init', array ($this, 'start_session'), 1);
 		add_action('wp_authenticate ', array ($this, 'end_session'));
 		add_action('wp_logout', array ($this, 'end_session'));
+		add_action('loop_end', array ($this, 'check_session'));
+	}
+
+	function check_session(){
+		// Log out user if token (used by widgets etc.) has been lost.
+		if ( is_user_logged_in() && !($_SESSION["oidc_access_token"]) ) {
+			wp_logout();
+		}
 	}
 
 	
