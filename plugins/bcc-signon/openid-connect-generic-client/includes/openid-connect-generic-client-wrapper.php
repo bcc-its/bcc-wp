@@ -429,15 +429,15 @@ class OpenID_Connect_Generic_Client_Wrapper {
 		$user = $this->get_user_by_identity( $user_claim );
 		
 		if ( ! $user ) {
+			if ( $user_claim['https://login.bcc.no/claims/hasMembership'] == false ) {
+				$this->error_redirect( new WP_Error( 'identity-not-map-existing-user', __( 'User identity is not linked to an existing WordPress user.', 'daggerhart-openid-connect-generic' ), $user_claim ) );
+			}
 			if ( $this->settings->create_if_does_not_exist ) {
-				$user = $this->create_new_user( $subject_identity, $this->limit_user_claims($user_claim) );
+				$user = $this->create_new_user( $subject_identity, $user_claim );
 				if ( is_wp_error( $user ) ) {
 					$this->error_redirect( $user );
 				}
 			 } else {
-				if ( $user_claim['https://login.bcc.no/claims/hasMembership'] == false ) {
-					$this->error_redirect( new WP_Error( 'identity-not-map-existing-user', __( 'User identity is not linked to an existing WordPress user.', 'daggerhart-openid-connect-generic' ), $user_claim ) );
-				}
 				$user = $this->get_common_login($user_claim);
 			}
 		} else {
@@ -474,21 +474,21 @@ class OpenID_Connect_Generic_Client_Wrapper {
 		exit;
 	}
 
-	function limit_user_claims($user_claim) {
+	// function limit_user_claims($user_claim) {
 
-		return array(
-			"sub" => $user_claim['sub'],
-			"email" => $user_claim['https://login.bcc.no/claims/personId'] . '@bcc.no',
-			"given_name" => $user_claim['https://login.bcc.no/claims/personId'],
-			"preferred_username" => $user_claim['preferred_username'] ?? $user_claim['nickname'],
-			"family_name" => '',
-			"https://login.bcc.no/claims/personId" => $user_claim['https://login.bcc.no/claims/personId'],
-			"https://login.bcc.no/claims/hasMembership" => $user_claim['https://login.bcc.no/claims/hasMembership'],
-			"https://login.bcc.no/claims/churchName" => $user_claim['https://login.bcc.no/claims/churchName'],
-			"https://login.bcc.no/claims/CountryIso2Code" => $user_claim['https://login.bcc.no/claims/CountryIso2Code'],
-			"https://members.bcc.no/app_metadata" => $user_claim['https://members.bcc.no/app_metadata'],
-		);
-	}
+	// 	return array(
+	// 		"sub" => $user_claim['sub'],
+	// 		"email" => $user_claim['https://login.bcc.no/claims/personId'] . '@bcc.no',
+	// 		"given_name" => $user_claim['https://login.bcc.no/claims/personId'],
+	// 		"preferred_username" => $user_claim['preferred_username'] ?? $user_claim['nickname'],
+	// 		"family_name" => '',
+	// 		"https://login.bcc.no/claims/personId" => $user_claim['https://login.bcc.no/claims/personId'],
+	// 		"https://login.bcc.no/claims/hasMembership" => $user_claim['https://login.bcc.no/claims/hasMembership'],
+	// 		"https://login.bcc.no/claims/churchName" => $user_claim['https://login.bcc.no/claims/churchName'],
+	// 		"https://login.bcc.no/claims/CountryIso2Code" => $user_claim['https://login.bcc.no/claims/CountryIso2Code'],
+	// 		"https://members.bcc.no/app_metadata" => $user_claim['https://members.bcc.no/app_metadata'],
+	// 	);
+	// }
 
 	function get_common_login($user_claim) {
 		if ( $user_claim['https://login.bcc.no/claims/churchName'] == get_option('bcc_local_church') ) {
@@ -565,6 +565,7 @@ class OpenID_Connect_Generic_Client_Wrapper {
 
 		// Save access token to session
 		$_SESSION['oidc_access_token'] = $token_response['access_token'];
+		$_SESSION['oidc_id_token'] = $token_response['id_token'];
 
 		// Save the refresh token in the session.
 		$this->save_refresh_token( $manager, $token, $token_response );
@@ -594,7 +595,8 @@ class OpenID_Connect_Generic_Client_Wrapper {
 		);
 
 		// Save access token to session
-		$session[ 'oidc_access_token' ] = $token_response['access_token'];
+		$_SESSION['oidc_access_token'] = $token_response['access_token'];
+		$_SESSION['oidc_id_token'] = $token_response['id_token'];
 
 		if ( isset( $token_response['refresh_expires_in'] ) ) {
 			$refresh_expires_in = $token_response['refresh_expires_in'];
