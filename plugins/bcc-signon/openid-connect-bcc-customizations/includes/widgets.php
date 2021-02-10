@@ -22,6 +22,11 @@ if (get_option('bcc_topbar') == 1) {
 }
 
 
+
+    add_action('wp_head', 'ensure_access_token_clientside');
+
+
+
 /** Widgets */
 
 function get_access_token_url(){
@@ -29,6 +34,33 @@ function get_access_token_url(){
     $root_dir = get_home_path();
     $relative_plugin_dir = substr($plugin_dir, strlen($root_dir));
     return '/' . $relative_plugin_dir . '/bcc-signon/openid-connect-bcc-customizations/access-token.php';
+}
+
+function get_refesh_login_url(){
+    $plugin_dir = constant( 'WP_PLUGIN_DIR' );
+    $root_dir = get_home_path();
+    $relative_plugin_dir = substr($plugin_dir, strlen($root_dir));
+    return '/' . $relative_plugin_dir . '/bcc-signon/openid-connect-bcc-customizations/refresh-login.php';
+}
+
+function ensure_access_token_clientside() {
+  // If user is logged in, add a client side check to make sure access token is still
+  // available (i.e. that session variable has not been lost)
+  // If access token (stored in session variable) has been lost, refresh user login
+  if (is_user_logged_in()) {
+    $script = '<script>
+    fetch("' . get_access_token_url() . '")
+        .then(function(response) {
+            response.text().then(function (token) {
+              if (!token) {
+                  document.location.href = "' . get_refesh_login_url() . '";
+              }
+            });
+        });
+</script>';
+
+   echo $script;
+  }
 }
 
 /** Topbar */
