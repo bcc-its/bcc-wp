@@ -1,9 +1,5 @@
 <?php
 
-require_once  "../../../../wp-load.php";
-
-wp_logout();
-
 if (isset($_SERVER['HTTP_COOKIE'])) {
     $cookies = explode(';', $_SERVER['HTTP_COOKIE']);
     foreach($cookies as $cookie) {
@@ -14,6 +10,9 @@ if (isset($_SERVER['HTTP_COOKIE'])) {
     }
 }
 
-wp_redirect(get_home_url());
+//$refresh_login_url = '/wp-content/plugins/bcc-signon/openid-connect-bcc-customizations/refresh-login.php';
+$refresh_login_url = '/';
+
+header('Location: ' . $refresh_login_url);
 
 ?>

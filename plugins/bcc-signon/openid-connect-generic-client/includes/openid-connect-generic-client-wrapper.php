@@ -215,12 +215,49 @@ class OpenID_Connect_Generic_Client_Wrapper {
 		}
 
 		// Save access token to session
-		if (!empty($token_response['access_token'])){
-			$_SESSION['oidc_access_token'] = $token_response['access_token'];
-		}
+		$this->save_tokens( $token_response );
 
 		$this->save_refresh_token( $manager, $token, $token_response );
 	}
+
+    function save_tokens($token_response) {
+        if (!empty($token_response['access_token'])){
+            $access_token = $token_response['access_token'];
+            $id_token = $token_response['id_token'];
+            $tks = explode('.', $access_token);
+            list($headb64, $bodyb64, $cryptob64) = $tks;
+            $access_token_payload = json_decode($this->urlsafe_b64_decode($bodyb64), true);
+            $person_id = $access_token_payload['https://login.bcc.no/claims/personId'];
+            $exp = $access_token_payload['exp'];        
+
+          if (!empty($person_id)) {
+              $timeout = ((int)$exp) - time();
+              $token_id = uniqid ('',true);
+              setcookie ( 'oidc_token_id', $token_id, $exp, '/' , '', true, true);
+              set_transient('oidc_access_token_' . $token_id, $access_token, $timeout);
+              $_SESSION['oidc_access_token'] = $access_token;
+              if (!empty($id_token)) {
+                  set_transient('oidc_id_token' . $token_id, $id_token, $timeout);
+                  $_SESSION['oidc_id_token'] = $id_token;
+              }
+          } else {
+              $_SESSION['oidc_access_token'] = '';
+              $_SESSION['oidc_id_token'] = '';
+          }
+       }
+        
+    }
+
+    function urlsafe_b64_decode($input)
+    {
+        $remainder = strlen($input) % 4;
+        if ($remainder) {
+            $padlen = 4 - $remainder;
+            $input .= str_repeat('=', $padlen);
+        }
+        return base64_decode(strtr($input, '-_', '+/'));
+    }
+
 
 	/**
 	 * Handle errors by redirecting the user to the login form along with an
@@ -564,8 +601,7 @@ class OpenID_Connect_Generic_Client_Wrapper {
 		$token = $manager->create( $expiration );
 
 		// Save access token to session
-		$_SESSION['oidc_access_token'] = $token_response['access_token'];
-		$_SESSION['oidc_id_token'] = $token_response['id_token'];
+        $this->save_tokens( $token_response );
 
 		// Save the refresh token in the session.
 		$this->save_refresh_token( $manager, $token, $token_response );
@@ -595,8 +631,7 @@ class OpenID_Connect_Generic_Client_Wrapper {
 		);
 
 		// Save access token to session
-		$_SESSION['oidc_access_token'] = $token_response['access_token'];
-		$_SESSION['oidc_id_token'] = $token_response['id_token'];
+        $this->save_tokens( $token_response );
 
 		if ( isset( $token_response['refresh_expires_in'] ) ) {
 			$refresh_expires_in = $token_response['refresh_expires_in'];

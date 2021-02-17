@@ -29,19 +29,32 @@ class BCC_Signon {
 		$this->load_dependencies();
 		add_action('admin_menu', array ($this, 'bcc_signon_plugin_create_menu'));
 
+		add_action('plugins_loaded', function () {
+			if ( isset($_GET['login-error']) && $_GET['login-error'] == 'invalid-state' ) {
+				wp_redirect($this->get_clear_cookies_url());
+                exit;
+			}
+		});
+
 		add_action('init', array ($this, 'start_session'), 1);
 		add_action('wp_authenticate ', array ($this, 'end_session'));
 		add_action('wp_logout', array ($this, 'end_session'));
-		add_action('loop_end', array ($this, 'ensure_access_token'));
+		// add_action('loop_end', array ($this, 'ensure_access_token'));
 	}
 
+    function get_clear_cookies_url(){
+        $plugin_dir = constant( 'WP_PLUGIN_DIR' );
+        $root_dir = get_home_path();
+        $relative_plugin_dir = substr($plugin_dir, strlen($root_dir));
+        return '/' . $relative_plugin_dir . '/bcc-signon/openid-connect-bcc-customizations/clear-cookies.php';
+    }
 
-	function ensure_access_token(){
-		// Log out user if token (used by widgets etc.) has been lost.
-		if ( is_user_logged_in() && !($_SESSION["oidc_access_token"]) ) {
-			wp_logout();
-		}
-	}
+	//function ensure_access_token(){
+	//	// Log out user if token (used by widgets etc.) has been lost.
+	//	if ( is_user_logged_in() && !($_SESSION["oidc_access_token"]) ) {
+	//		wp_logout();
+	//	}
+	//}
 
 	
 	/**
