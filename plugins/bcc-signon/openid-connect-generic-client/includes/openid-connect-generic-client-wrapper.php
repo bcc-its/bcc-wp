@@ -230,17 +230,19 @@ class OpenID_Connect_Generic_Client_Wrapper {
             $person_id = $access_token_payload['https://login.bcc.no/claims/personId'];
             $exp = $access_token_payload['exp'];        
 
-          if (!empty($person_id)) {
-              $timeout = ((int)$exp) - time();
-              $token_id = uniqid ('',true);
-              setcookie ( 'oidc_token_id', $token_id, $exp, '/' , '', true, true);
-              set_transient('oidc_access_token_' . $token_id, $access_token, $timeout);
-              $_SESSION['oidc_access_token'] = $access_token;
-              if (!empty($id_token)) {
+			$token_id = uniqid ('',true);
+			setcookie ( 'oidc_token_id', $token_id, $exp, '/' , '', true, true);
+
+            if (!empty($person_id)) {
+                $timeout = ((int)$exp) - time();
+                set_transient('oidc_access_token_' . $token_id, $access_token, $timeout);
+                $_SESSION['oidc_access_token'] = $access_token;
+                if (!empty($id_token)) {
                   set_transient('oidc_id_token' . $token_id, $id_token, $timeout);
                   $_SESSION['oidc_id_token'] = $id_token;
-              }
+                }
           } else {
+			  delete_transient('oidc_access_token_' . $token_id);
               $_SESSION['oidc_access_token'] = '';
               $_SESSION['oidc_id_token'] = '';
           }
