@@ -1,1 +1,3 @@
 .vs/
+data/mysql/*
+.env

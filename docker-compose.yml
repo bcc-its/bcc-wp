@@ -1,0 +1,60 @@
+version: '3.2'
+
+services:
+
+  mysql:
+    container_name: 'local-wordpress-db'
+    image: 'mysql:5.7'
+    volumes:
+      - './data/mysql:/var/lib/mysql'
+    ports:
+      - 18766:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: wordpress_root_password
+      MYSQL_DATABASE: wordpress_db
+      MYSQL_USER: wordpress_user
+      MYSQL_PASSWORD: wordpress_password
+    networks:
+      - wp
+    restart: unless-stopped
+
+  wordpress:
+    container_name: 'local-wordpress'
+    depends_on:
+      - mysql
+    image: 'wordpress:latest'
+    ports:
+      - 80:80
+      - 443:443
+    env_file:
+      - ./.env #Create this file locally, using .env-example as a guide
+    environment:
+      WORDPRESS_DB_HOST: 'mysql:3306'
+      WORDPRESS_DB_USER: wordpress_user
+      WORDPRESS_DB_PASSWORD: wordpress_password
+      WORDPRESS_DB_NAME: wordpress_db
+      WORDPRESS_DEBUG: 1
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
+    volumes:
+      - "./plugins/bcc-login:/var/www/html/wp-content/plugins/bcc-login"
+    networks:
+      - wp
+    restart: unless-stopped
+
+  phpmyadmin:
+    container_name: 'local-wordpress-phpmyadmin'
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: wordpress_root_password
+    depends_on:
+      - mysql
+    ports:
+      - 8080:80
+    networks:
+      - wp
+    restart: unless-stopped
+
+networks:
+  wp:
