@@ -13,7 +13,8 @@ class Auth_Settings {
     public $scope;
     public $redirect_uri;
     public $create_missing_users;
-    
+    public $local_organization_name;
+    public $local_organization_claim_type;
 }
 
 /**
@@ -38,6 +39,7 @@ class Auth_Settings_Provider {
         'authority'                 => 'OIDC_AUTHORITY',
         'scope'                     => 'OIDC_SCOPE',
         'create_missing_users'      => 'OIDC_CREATE_USERS',
+        'local_organization_name'   => 'BCC_WP_LOCAL_ORGANIZATION_NAME'
 	);
 
     function __construct () {
@@ -56,6 +58,7 @@ class Auth_Settings_Provider {
         $settings->scope = 'email openid profile church';
         $settings->redirect_uri = 'oidc-authorize';
         $settings->create_missing_users = false;
+        $settings->local_organization_claim_type = 'https://login.bcc.no/claims/churchName';
        
         // Set settings from environment variables
 		foreach ( $this->environment_variables as $key => $constant ) {

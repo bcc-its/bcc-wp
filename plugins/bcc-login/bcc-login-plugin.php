@@ -18,8 +18,8 @@ class BCC_Login_Plugin {
      */
     static function init_plugin(){
         $plugin = new self();
-        register_activation_hook( __FILE__, array( 'OpenID_Connect_Generic', 'activation' ) );
-        register_deactivation_hook( __FILE__, array( 'OpenID_Connect_Generic', 'deactivation' ) );
+        register_activation_hook( __FILE__, array( 'BCC_Login_Plugin', 'activate_plugin' ) );
+        register_deactivation_hook( __FILE__, array( 'BCC_Login_Plugin', 'deactivate_plugin' ) );
     }
 
     /**

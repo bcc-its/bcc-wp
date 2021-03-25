@@ -164,15 +164,15 @@ class Auth_Client {
     }
     
     function get_common_login($user_claim) {
-		if ( $user_claim['https://login.bcc.no/claims/churchName'] == get_option('bcc_local_church') ) {
+		if ( $user_claim[$this->_settings->local_organization_claim_type] == $this->_settings->local_organization_name ) {
 			$role = array(
 				'title' => 'Local Member',
-				'id' => 'bcc_local'
+				'id' => 'member'
 			);
 		} else {
 			$role = array(
 				'title' => 'Global Member',
-				'id' => 'bcc_global'
+				'id' => 'associate'
 			);
 		}
 
