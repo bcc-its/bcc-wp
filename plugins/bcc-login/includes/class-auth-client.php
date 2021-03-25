@@ -177,8 +177,6 @@ class Auth_Client {
 		}
 
 		$this->create_role_if_not_exists($role);
-		
-		$access_token = $user_claim['access_token'];
 
         $users = get_users( [ 'role' => $role['id'] ] );
             
