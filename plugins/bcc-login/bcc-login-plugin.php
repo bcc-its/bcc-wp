@@ -27,7 +27,8 @@ class BCC_Login_Plugin {
      * Called when plugin is activated
      */
     static function activate_plugin() {
-
+        self::ensure_user_for_common_login('member', 'Member (Local)');
+        self::ensure_user_for_common_login('associate', 'Associate (Worldwide)');
     }
 
     /**
@@ -75,6 +76,35 @@ class BCC_Login_Plugin {
 
     function filter_comment_text_rss( $content ) {
         return $content;
+    }
+
+
+
+    static function ensure_user_for_common_login($id, $description) {
+
+        if ( ! get_role($id) ) {
+            add_role( $id, $description, [ 'read' => true ] );
+        }
+
+        if ( ! get_user_by('login', $id) ) {
+            $user_data = array(
+                'user_login' => $id,
+                'user_pass' => wp_generate_password( 32, true, true ),
+                'user_email' => $id . '@bcc.no',
+                'display_name' => $description,
+                'role' => $id,
+                'show_admin_bar_front' => "false"
+            );
+
+            // Create the new user.
+            $uid = wp_insert_user( $user_data );
+
+            // Make sure we didn't fail in creating the user.
+            if ( is_wp_error( $uid ) ) {
+                wp_die('Common user creation failed.');
+            }
+        }
+
     }
 }
 

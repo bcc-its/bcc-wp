@@ -164,54 +164,13 @@ class Auth_Client {
     }
     
     function get_common_login($user_claim) {
+		$user_name = '';
 		if ( $user_claim[$this->_settings->local_organization_claim_type] == $this->_settings->local_organization_name ) {
-			$role = array(
-				'title' => 'Local Member',
-				'id' => 'member'
-			);
+			$user_name = 'member';
 		} else {
-			$role = array(
-				'title' => 'Global Member',
-				'id' => 'associate'
-			);
+			$user_name = 'associate';
 		}
-
-		$this->create_role_if_not_exists($role);
-
-        $users = get_users( [ 'role' => $role['id'] ] );
-            
-        return !empty($users) ?
-            $users[0] :
-            $this->create_user_for_common_login($role);
-    }
-
-    function create_role_if_not_exists($role) {
-        if ( ! get_role($role['id']) ) {
-            add_role( $role['id'], $role['title'], [ 'read' => true ] );
-        }
-    }
-
-
-    function create_user_for_common_login($role) {
-        $user_data = array(
-            'user_login' => $role['id'],
-            'user_pass' => wp_generate_password( 32, true, true ),
-            'user_email' => $role['id'] . '@bcc.no',
-            'display_name' => $role['title'],
-            'role' => $role['id'],
-            'show_admin_bar_front' => "false"
-        );
-
-        // Create the new user.
-        $uid = wp_insert_user( $user_data );
-
-		// Make sure we didn't fail in creating the user.
-		if ( is_wp_error( $uid ) ) {
-			return new WP_Error( 'failed-user-creation', __( 'Failed user creation.', 'daggerhart-openid-connect-generic' ), $uid );
-		}
-
-		// Retrieve our new user.
-        return get_user_by( 'id', $uid );
+        return get_user_by('login', $user_name);
     }
 
 
