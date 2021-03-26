@@ -2,6 +2,7 @@
 
 require_once  "../../../../wp-load.php";
 
+wp_clear_auth_cookie();
 wp_logout();
 
 if (isset($_SERVER['HTTP_COOKIE'])) {
