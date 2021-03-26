@@ -27,8 +27,7 @@ class BCC_Login_Plugin {
      * Called when plugin is activated
      */
     static function activate_plugin() {
-        self::ensure_user_for_common_login('member', 'Member (Local)');
-        self::ensure_user_for_common_login('associate', 'Associate (Worldwide)');
+        self::ensure_common_logins();
     }
 
     /**
@@ -80,31 +79,36 @@ class BCC_Login_Plugin {
 
 
 
-    static function ensure_user_for_common_login($id, $description) {
+    static function ensure_common_logins() {
 
-        if ( ! get_role($id) ) {
-            add_role( $id, $description, [ 'read' => true ] );
+        if ( ! get_role('member') ) {
+            add_role( 'member', 'Local Member', [ 'read' => true ] );
         }
 
-        if ( ! get_user_by('login', $id) ) {
-            $user_data = array(
-                'user_login' => $id,
-                'user_pass' => wp_generate_password( 32, true, true ),
-                'user_email' => $id . '@bcc.no',
-                'display_name' => $description,
-                'role' => $id,
-                'show_admin_bar_front' => "false"
-            );
-
-            // Create the new user.
-            $uid = wp_insert_user( $user_data );
-
-            // Make sure we didn't fail in creating the user.
-            if ( is_wp_error( $uid ) ) {
-                wp_die('Common user creation failed.');
-            }
+        if ( ! get_user_by('login', 'member') ) {
+            create_common_login('member','member','Member (Local)');
+            create_common_login('subscriber','subscriber','Subscriber (Worldwide)');
         }
+    }
 
+    static function create_common_login($login, $role, $description) {
+
+        $user_data = array(
+            'user_login' => $login,
+            'user_pass' => wp_generate_password( 32, true, true ),
+            'user_email' => 'bcc_wp_' . $login . '@bcc.no',
+            'display_name' => $description,
+            'role' => $role,
+            'show_admin_bar_front' => "false"
+        );
+
+        // Create the new user.
+        $uid = wp_insert_user( $user_data );
+
+        // Make sure we didn't fail in creating the user.
+        if ( is_wp_error( $uid ) ) {
+            wp_die('Common user creation failed.');
+        }
     }
 }
 
