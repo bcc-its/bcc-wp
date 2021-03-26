@@ -3,7 +3,7 @@
 /*
 Plugin Name: BCC Wordpress Proxy
 Description: Add support for serving pages via the BCC Wordpress Proxy
-Version: 1.0
+Version: 1.1
 Author: BCC IT
 License: GPL2
 */
@@ -40,6 +40,7 @@ class BCC_WP_Proxy_Plugin {
         // remove_filter('template_redirect','redirect_canonical');
         // Add init handler
         add_action( 'init', array( $this, 'on_init' ) );
+        add_action( 'save_post', array ( $this, 'on_post_saved' ), 10, 3 );
 
         add_action( 'rest_api_init', function () {
             register_rest_route( 'bcc-wp-proxy/v1', '/users', array(
@@ -49,7 +50,19 @@ class BCC_WP_Proxy_Plugin {
                     return true;
                 },
             ) );
+
+            register_rest_route( 'bcc-wp-proxy/v1', '/last-updated', array(
+                'methods' => 'GET',
+                'callback' => array($this, 'get_last_updated'),
+                'permission_callback' => function( WP_REST_Request $request ) {
+                      return true;
+                  },
+              ) );
           } );
+    }
+
+    function on_post_saved($post_id, $post, $update ) {
+        update_option('bcc_wp_proxy_content_timestamp', time());
     }
 
     function on_init() {
@@ -86,6 +99,20 @@ class BCC_WP_Proxy_Plugin {
            );
         }, get_users());
     }
+
+     /**
+     * Gets last content update date (used for cache invalidation)
+     */
+    function get_last_updated( $data ) {
+
+        $this->authorize_api_request();        
+
+        $timestamp = get_option('bcc_wp_proxy_content_timestamp');
+        if ( $timestamp ) {
+            return $timestamp;
+        }
+        return 0;   
+    }
     
 
     /**
@@ -117,6 +144,10 @@ class BCC_WP_Proxy_Plugin {
         $header = apache_request_headers();
         if ( isset( $header['X-Wp-Proxy-Key'] )) {
             if ( $header['X-Wp-Proxy-Key'] == $this->get_auth_key() ) {
+
+                /* Don't redirect to cannonical address if request is coming from proxy */
+                remove_filter('template_redirect','redirect_canonical');
+
                 if ( isset( $header['X-Wp-Proxy-User-Id'] )) {
                     $userId = $header['X-Wp-Proxy-User-Id'];
                     if ($userId != '' && $userId != '0'){
