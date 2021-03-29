@@ -114,7 +114,7 @@ class BCC_WP_Proxy_Plugin {
 
         $timestamp = get_option('bcc_wp_proxy_content_timestamp');
         if ( $timestamp ) {
-            return $timestamp;
+            return (int)$timestamp;
         }
         return 0;   
     }
