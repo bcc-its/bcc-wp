@@ -39,8 +39,9 @@ class BCC_WP_Proxy_Plugin {
     function __construct() {
         // remove_filter('template_redirect','redirect_canonical');
         // Add init handler
-        add_action( 'init', array( $this, 'on_init' ) );
+        add_action( 'plugins_loaded', array( $this, 'authorize_user' ) );
         add_action( 'save_post', array ( $this, 'on_post_saved' ), 10, 3 );
+        add_action( 'siteground_optimizer_flush_cache', array ( $this, 'on_sg_cache_purged' ));
 
         add_action( 'rest_api_init', function () {
             register_rest_route( 'bcc-wp-proxy/v1', '/users', array(
@@ -65,7 +66,11 @@ class BCC_WP_Proxy_Plugin {
         update_option('bcc_wp_proxy_content_timestamp', time());
     }
 
-    function on_init() {
+    function on_sg_cache_purged($url) {
+        update_option('bcc_wp_proxy_content_timestamp', time());
+    }
+
+    function authorize_user() {
         $userId = $this->authorize_proxy_request();
         if ( $userId > 0 ) {
             if ( is_user_logged_in() ) {
