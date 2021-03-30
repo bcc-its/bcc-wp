@@ -95,8 +95,8 @@ class BCC_Login_Plugin {
         }
 
         if ( ! get_user_by('login', 'member') ) {
-            self::create_common_login('member','member','Member (Local)');
-            self::create_common_login('subscriber','subscriber','Subscriber (Worldwide)');
+            self::create_common_login( 'member', 'member', 'Member (Local)' );
+            self::create_common_login( 'subscriber', 'subscriber', 'Subscriber (Worldwide)' );
         }
     }
 
@@ -122,7 +122,7 @@ class BCC_Login_Plugin {
 
     static function remove_common_logins() {
         foreach ( array( 'member', 'subscriber' ) as $login ) {
-            if ( $user = get_user_by( 'login', $login  ) ) {
+            if ( $user = get_user_by( 'login', $login ) ) {
                 wp_delete_user( $user->ID );
             }
         }
