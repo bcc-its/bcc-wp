@@ -32,7 +32,7 @@ class BCC_Login_Visibility {
     function on_init() {
         foreach ( $this->post_types as $post_type ) {
             register_post_meta( $post_type, 'bcc_login_visibility', array(
-                'show_in_rest' => true,
+                'show_in_rest' => current_user_can( 'edit_posts' ),
                 'single'       => true,
                 'type'         => 'number',
                 'default'      => $this->default_level,
@@ -89,7 +89,7 @@ class BCC_Login_Visibility {
 
     /**
      * Filters out posts that the current user shouldn't see. This filter
-     * applies to single posts, category lists and ajax API results.
+     * applies to single posts, category lists and REST API results.
      *
      * @param WP_Query $query
      * @return WP_Query
