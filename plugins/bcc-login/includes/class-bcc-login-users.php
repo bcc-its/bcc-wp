@@ -29,7 +29,6 @@ class BCC_Login_Users {
                     )
                 );
 
-                // Make sure we didn't fail in creating the user.
                 if ( is_wp_error( $uid ) ) {
                     wp_die( 'Common user creation failed.' );
                 }
@@ -61,17 +60,17 @@ class BCC_Login_Users {
     /**
      * Hides common users from the users list.
      *
-     * @param WP_User_Query $user_search
+     * @param WP_User_Query $query
      * @return void
      */
-    function modify_user_query( $user_search ) {
+    function modify_user_query( $query ) {
         global $wpdb;
 
         foreach ( self::get_logins() as $login => $info ) {
-            $user_search->query_where = str_replace(
+            $query->query_where = str_replace(
                 'WHERE 1=1',
                 "WHERE 1=1 AND {$wpdb->users}.user_login != '" . $login . "'",
-                $user_search->query_where
+                $query->query_where
             );
         }
     }
@@ -80,18 +79,18 @@ class BCC_Login_Users {
     /**
      * Disallows updating a common user.
      *
-     * @param integer $user_id
-     * @param WP_User $old_user_data
+     * @param int     $user_id
+     * @param WP_User $user_data
      * @return void
      */
-    function on_profile_update( $user_id, $old_user_data ) {
-        if ( $this->is_common_user( $old_user_data ) ) {
+    function on_profile_update( $user_id, $user_data ) {
+        if ( $this->is_common_user( $user_data ) ) {
             wp_die( __( 'Unauthorized' ) );
         }
     }
 
     /**
-     * Checks wheter the given user is a common user.
+     * Checks whether the given user is a common user.
      *
      * @param WP_User $user
      * @return boolean

@@ -6,10 +6,13 @@ class BCC_Login_Visibility {
 
     private $default_level = 0;
 
+    // A mapping of role -> level.
     private $levels = array(
         'bcc-login-member' => 2,
         'subscriber'       => 1,
     );
+
+    private $post_types = array( 'post', 'page' );
 
     function __construct( Auth_Settings $settings ) {
         $this->_settings = $settings;
@@ -17,7 +20,7 @@ class BCC_Login_Visibility {
         add_action( 'init', array( $this, 'on_init' ) );
         add_action( 'added_post_meta', array( $this, 'on_meta_saved' ), 10, 4 );
         add_action( 'updated_post_meta', array( $this, 'on_meta_saved' ), 10, 4 );
-        add_action( 'admin_enqueue_scripts', array( $this, 'on_admin_enqueue_scripts' ) );
+        add_action( 'enqueue_block_editor_assets', array( $this, 'on_block_editor_assets' ) );
         add_filter( 'pre_get_posts', array( $this, 'filter_pre_get_posts' ) );
         add_filter( 'wp_get_nav_menu_items', array( $this, 'filter_menu_items' ), 20 );
         add_filter( 'render_block', array( $this, 'on_render_block' ), 10, 2 );
@@ -27,7 +30,7 @@ class BCC_Login_Visibility {
      * Registers the `bcc_login_visibility` meta for posts and pages.
      */
     function on_init() {
-        foreach ( array( 'post', 'page' ) as $post_type ) {
+        foreach ( $this->post_types as $post_type ) {
             register_post_meta( $post_type, 'bcc_login_visibility', array(
                 'show_in_rest' => true,
                 'single'       => true,
@@ -38,7 +41,7 @@ class BCC_Login_Visibility {
     }
 
     /**
-     * Prevents the default level from beeing stored in the database.
+     * Removes the default level from the database.
      *
      * @param int    $mid
      * @param int    $post_id
@@ -47,14 +50,18 @@ class BCC_Login_Visibility {
      * @return void
      */
     function on_meta_saved( $mid, $post_id, $key, $value ) {
-        if ( $key === 'bcc_login_visibility' && $value == $this->default_level ) {
+        if ( $key == 'bcc_login_visibility' && (int) $value == $this->default_level ) {
             delete_post_meta( $post_id, $key );
         }
     }
 
-    function on_admin_enqueue_scripts() {
-        $script_path = BCC_LOGIN_PATH . 'build/visibility.asset.php';
-        $script_url  = BCC_LOGIN_URL . 'build/visibility.js';
+    /**
+     * Loads the `src/visibility.js` script in Gutenberg.
+     */
+    function on_block_editor_assets() {
+        $script_path    = BCC_LOGIN_PATH . 'build/visibility.asset.php';
+        $script_url     = BCC_LOGIN_URL . 'build/visibility.js';
+        $scrcipt_handle = 'bcc-login-visibility';
 
         if ( ! file_exists( $script_path ) ) {
             return;
@@ -63,7 +70,7 @@ class BCC_Login_Visibility {
         $script_asset = require $script_path;
 
         wp_enqueue_script(
-            'bcc-login-visibility',
+            $scrcipt_handle,
             $script_url,
             $script_asset['dependencies'],
             $script_asset['version'],
@@ -71,7 +78,7 @@ class BCC_Login_Visibility {
         );
 
         wp_add_inline_script(
-            'bcc-login-visibility',
+            $scrcipt_handle,
             'var bccLoginPostVisibility = ' . json_encode( array(
                 'defaultLevel' => $this->default_level,
                 'levels'       => $this->levels,
@@ -81,6 +88,9 @@ class BCC_Login_Visibility {
     }
 
     /**
+     * Filters out posts that the current user shouldn't see.
+     * This filter applies to single posts and category lists.
+     *
      * @param WP_Query $query
      * @return WP_Query
      */
@@ -109,6 +119,8 @@ class BCC_Login_Visibility {
     }
 
     /**
+     * Filters out menu items that the current users shouldn't see.
+     *
      * @param WP_Post[] $items
      * @return WP_Post[]
      */
@@ -128,7 +140,7 @@ class BCC_Login_Visibility {
                 continue;
             }
 
-            if ( in_array( $item->object, array( 'page', 'post' ), true ) ) {
+            if ( in_array( $item->object, $this->post_types, true ) ) {
                 $visibility = (int) get_post_meta( $item->object_id, 'bcc_login_visibility', true );
 
                 if ( $visibility && $visibility > $level ) {
@@ -157,6 +169,9 @@ class BCC_Login_Visibility {
     }
 
     /**
+     * Checks the `bccLoginVisibility` attribute and hides the block if
+     * the current users shouldn't be allowed to see it.
+     *
      * @param string $block_content
      * @param array $block
      * @return string
