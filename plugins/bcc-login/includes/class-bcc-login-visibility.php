@@ -35,7 +35,7 @@ class BCC_Login_Visibility {
                 'show_in_rest' => true,
                 'single'       => true,
                 'type'         => 'number',
-                'default'      => 0,
+                'default'      => $this->default_level,
             ) );
         }
     }
