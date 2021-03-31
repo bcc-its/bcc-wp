@@ -41,7 +41,7 @@ function VisibilityOptions({
             name={`bcc-login-visibility__setting-${instanceId}`}
             value={value}
             onChange={(event) => {
-              onUpdateVisibility(Number(event.target.value))
+              onUpdateVisibility(event.target.value)
             }}
             checked={visibility === value}
             id={`bcc-login-post-${value}-${instanceId}`}
@@ -71,10 +71,10 @@ registerPlugin('bcc-login-visibility', {
     withDispatch(dispatch => {
       const { editPost } = dispatch('core/editor')
       return {
-        onUpdateVisibility(bcc_login_visibility) {
+        onUpdateVisibility(value) {
           editPost({
             meta: {
-              bcc_login_visibility,
+              bcc_login_visibility: Number(value) || defaultLevel,
             }
           })
         }
@@ -129,7 +129,7 @@ addFilter(
       },
     }
   })
-);
+)
 
 addFilter(
   'blocks.getSaveContent',
@@ -144,4 +144,4 @@ addFilter(
       }
     )
   )
-);
+)
