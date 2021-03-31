@@ -108,11 +108,11 @@ class BCC_Login_Visibility {
         return $query;
     }
 
-	/**
-	 * @param WP_Post[] $items
+    /**
+     * @param WP_Post[] $items
      * @return WP_Post[]
-	 */
-	function filter_menu_items( $items ) {
+     */
+    function filter_menu_items( $items ) {
         if ( is_admin() || is_super_admin() ) {
             return $items;
         }
@@ -120,7 +120,7 @@ class BCC_Login_Visibility {
         $level   = $this->get_current_user_level();
         $removed = array();
 
-		foreach ( $items as $key => $item ) {
+        foreach ( $items as $key => $item ) {
             // Don't render children of removed menu items.
             if ( in_array( $item->menu_item_parent, $removed, true ) ) {
                 $removed[] = $item->ID;
@@ -138,8 +138,8 @@ class BCC_Login_Visibility {
             }
         }
 
-		return $items;
-	}
+        return $items;
+    }
 
     /**
      * @return int

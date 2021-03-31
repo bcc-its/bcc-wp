@@ -117,9 +117,9 @@ addFilter(
 )
 
 addFilter(
-	'blocks.registerBlockType',
-	'bcc-login/visibility',
-	(settings) => ({
+  'blocks.registerBlockType',
+  'bcc-login/visibility',
+  (settings) => ({
     ...settings,
     attributes: {
       ...settings.attributes,
