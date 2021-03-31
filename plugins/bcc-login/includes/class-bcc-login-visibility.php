@@ -88,8 +88,8 @@ class BCC_Login_Visibility {
     }
 
     /**
-     * Filters out posts that the current user shouldn't see.
-     * This filter applies to single posts and category lists.
+     * Filters out posts that the current user shouldn't see. This filter
+     * applies to single posts, category lists and ajax API results.
      *
      * @param WP_Query $query
      * @return WP_Query
