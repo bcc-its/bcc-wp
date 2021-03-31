@@ -20,6 +20,7 @@ class BCC_Login_Plugin {
         $plugin = new self();
         register_activation_hook( __FILE__, array( 'BCC_Login_Plugin', 'activate_plugin' ) );
         register_deactivation_hook( __FILE__, array( 'BCC_Login_Plugin', 'deactivate_plugin' ) );
+        register_uninstall_hook( __FILE__, array( 'BCC_Login_Plugin', 'uninstall_plugin' ) );
     }
 
     /**
@@ -36,6 +37,14 @@ class BCC_Login_Plugin {
      */
     static function deactivate_plugin() {
 
+    }
+
+    /**
+     * Uninstall plugin hook
+     * Called when plugin is uninstalled
+     */
+    static function uninstall_plugin() {
+        self::remove_common_logins();
     }
 
     private Auth_Settings $_settings;
@@ -86,8 +95,8 @@ class BCC_Login_Plugin {
         }
 
         if ( ! get_user_by('login', 'member') ) {
-            create_common_login('member','member','Member (Local)');
-            create_common_login('subscriber','subscriber','Subscriber (Worldwide)');
+            self::create_common_login( 'member', 'member', 'Member (Local)' );
+            self::create_common_login( 'subscriber', 'subscriber', 'Subscriber (Worldwide)' );
         }
     }
 
@@ -109,6 +118,15 @@ class BCC_Login_Plugin {
         if ( is_wp_error( $uid ) ) {
             wp_die('Common user creation failed.');
         }
+    }
+
+    static function remove_common_logins() {
+        foreach ( array( 'member', 'subscriber' ) as $login ) {
+            if ( $user = get_user_by( 'login', $login ) ) {
+                wp_delete_user( $user->ID );
+            }
+        }
+        remove_role( 'member' );
     }
 }
 
