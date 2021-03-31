@@ -1,4 +1,6 @@
 .vs/
 data/mysql/*
+node_modules
+plugins/*/build
 .env
 .DS_Store

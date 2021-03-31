@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "name": "bcc-login",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "rimraf build && wp-scripts start",
+    "build": "rimraf build && wp-scripts build"
+  }
+}
