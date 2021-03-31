@@ -2,7 +2,7 @@
 
 class BCC_Login_Visibility {
 
-    private BCC_Login_Plugin $plugin;
+    private Auth_Settings $_settings;
 
     private $default_level = 0;
 
@@ -11,8 +11,8 @@ class BCC_Login_Visibility {
         'subscriber'       => 1,
     );
 
-    function __construct( BCC_Login_Plugin $plugin) {
-        $this->plugin = $plugin;
+    function __construct( Auth_Settings $settings ) {
+        $this->_settings = $settings;
 
         add_action( 'init', array( $this, 'on_init' ) );
         add_action( 'added_post_meta', array( $this, 'on_meta_saved' ), 10, 4 );

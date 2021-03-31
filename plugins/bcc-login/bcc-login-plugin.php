@@ -56,7 +56,7 @@ class BCC_Login_Plugin {
         $this->_settings = $settings_provider->get_settings();
         $this->_client = new Auth_Client($this->_settings);
         $this->_users = new BCC_Login_Users($this->_settings);
-        $this->_visibility = new BCC_Login_Visibility($this);
+        $this->_visibility = new BCC_Login_Visibility($this->_settings);
 
         // Add init handler
         add_action( 'init', array( $this, 'on_init' ) );
