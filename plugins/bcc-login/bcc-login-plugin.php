@@ -25,6 +25,7 @@ class BCC_Login_Plugin {
         $plugin = new self();
         register_activation_hook( __FILE__, array( 'BCC_Login_Plugin', 'activate_plugin' ) );
         register_deactivation_hook( __FILE__, array( 'BCC_Login_Plugin', 'deactivate_plugin' ) );
+        register_uninstall_hook( __FILE__, array( 'BCC_Login_Plugin', 'uninstall_plugin' ) );
     }
 
     /**
@@ -44,6 +45,14 @@ class BCC_Login_Plugin {
      */
     static function deactivate_plugin() {
 
+    }
+
+    /**
+     * Uninstall plugin hook
+     * Called when plugin is uninstalled
+     */
+    static function uninstall_plugin() {
+        self::remove_common_logins();
     }
 
     private Auth_Settings $_settings;
@@ -92,6 +101,48 @@ class BCC_Login_Plugin {
 
     function filter_logout_url() {
         return home_url();
+    }
+
+    static function ensure_common_logins() {
+
+        if ( ! get_role('member') ) {
+            add_role( 'member', 'Local Member', [ 'read' => true ] );
+        }
+
+        if ( ! get_user_by('login', 'member') ) {
+            self::create_common_login( 'member', 'member', 'Member (Local)' );
+            self::create_common_login( 'subscriber', 'subscriber', 'Subscriber (Worldwide)' );
+        }
+    }
+
+    static function create_common_login($login, $role, $description) {
+
+        $user_data = array(
+            'user_login' => $login,
+            'user_pass' => wp_generate_password( 32, true, true ),
+            'user_email' => 'bcc_wp_' . $login . '@bcc.no',
+            'display_name' => $description,
+            'role' => $role,
+            'show_admin_bar_front' => "false"
+        );
+
+        // Create the new user.
+        $uid = wp_insert_user( $user_data );
+
+        // Make sure we didn't fail in creating the user.
+        if ( is_wp_error( $uid ) ) {
+            wp_die('Common user creation failed.');
+        }
+
+    }
+
+    static function remove_common_logins() {
+        foreach ( array( 'member', 'subscriber' ) as $login ) {
+            if ( $user = get_user_by( 'login', $login ) ) {
+                wp_delete_user( $user->ID );
+            }
+        }
+        remove_role( 'member' );
     }
 }
 
