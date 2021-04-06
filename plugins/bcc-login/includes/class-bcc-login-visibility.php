@@ -80,6 +80,7 @@ class BCC_Login_Visibility {
         wp_add_inline_script(
             $scrcipt_handle,
             'var bccLoginPostVisibility = ' . json_encode( array(
+                'localName'    => $this->_settings->local_organization_name ?? get_bloginfo( 'blog_name' ),
                 'defaultLevel' => $this->default_level,
                 'levels'       => $this->levels,
             ) ),

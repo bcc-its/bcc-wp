@@ -1,4 +1,4 @@
-import { __ } from '@wordpress/i18n'
+import { __, sprintf } from '@wordpress/i18n'
 import { addFilter } from '@wordpress/hooks'
 import { PanelBody } from '@wordpress/components'
 import { registerPlugin } from '@wordpress/plugins'
@@ -8,7 +8,7 @@ import { Fragment, cloneElement } from '@wordpress/element'
 import { withSelect, withDispatch } from '@wordpress/data'
 import { createHigherOrderComponent, withInstanceId, compose } from '@wordpress/compose'
 
-const { defaultLevel, levels } = window.bccLoginPostVisibility
+const { defaultLevel, levels, localName } = window.bccLoginPostVisibility
 
 const visibilityOptions = [
   {
@@ -21,7 +21,7 @@ const visibilityOptions = [
   },
   {
     value: levels['bcc-login-member'],
-    label: __('Only Members'),
+    label: sprintf(__('%s Members'), localName),
   },
 ]
 
