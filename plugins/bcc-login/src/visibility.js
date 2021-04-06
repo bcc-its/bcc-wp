@@ -17,7 +17,7 @@ const visibilityOptions = [
   },
   {
     value: levels.subscriber,
-    label: __('Subscribers and Members'),
+    label: __('Authenticated Users'),
   },
   {
     value: levels['bcc-login-member'],
