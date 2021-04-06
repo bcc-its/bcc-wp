@@ -13,7 +13,7 @@ const { defaultLevel, levels } = window.bccLoginPostVisibility
 const visibilityOptions = [
   {
     value: defaultLevel,
-    label: __('Everyone'),
+    label: __('Public'),
   },
   {
     value: levels.subscriber,
