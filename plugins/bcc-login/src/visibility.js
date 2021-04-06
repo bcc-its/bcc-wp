@@ -100,7 +100,7 @@ addFilter(
           <InspectorControls>
             <PanelBody>
               <VisibilityOptions
-                heading={__('Block visibility')}
+                heading={__('Block Audience')}
                 visibility={attributes.bccLoginVisibility || defaultLevel}
                 onUpdateVisibility={(value) => {
                   setAttributes({ bccLoginVisibility: Number(value) || undefined })
