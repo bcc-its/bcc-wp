@@ -95,7 +95,7 @@ class BCC_Login_Visibility {
      * @return WP_Query
      */
     function filter_pre_get_posts( $query ) {
-        if ( is_admin() || is_super_admin() ) {
+        if ( current_user_can( 'edit_posts' ) ) {
             return $query;
         }
 
@@ -125,7 +125,7 @@ class BCC_Login_Visibility {
      * @return WP_Post[]
      */
     function filter_menu_items( $items ) {
-        if ( is_admin() || is_super_admin() ) {
+        if ( current_user_can( 'edit_posts' ) ) {
             return $items;
         }
 
