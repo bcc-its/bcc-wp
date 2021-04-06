@@ -52,8 +52,9 @@ class BCC_Login_Plugin {
      * Called when plugin is uninstalled
      */
     static function uninstall_plugin() {
-        self::remove_common_logins();
+        BCC_Login_Users::remove_users();
         BCC_Login_Visibility::on_uninstall();
+        remove_role( 'bcc-login-member' );
     }
 
     private Auth_Settings $_settings;
@@ -135,15 +136,6 @@ class BCC_Login_Plugin {
             wp_die('Common user creation failed.');
         }
 
-    }
-
-    static function remove_common_logins() {
-        foreach ( array( 'member', 'subscriber' ) as $login ) {
-            if ( $user = get_user_by( 'login', $login ) ) {
-                wp_delete_user( $user->ID );
-            }
-        }
-        remove_role( 'member' );
     }
 }
 

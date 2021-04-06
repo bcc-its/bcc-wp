@@ -164,13 +164,11 @@ class Auth_Client {
     }
     
     function get_common_login($user_claim) {
-		$user_name = '';
-		if ( $user_claim[$this->_settings->local_organization_claim_type] == $this->_settings->local_organization_name ) {
-			$user_name = 'member';
-		} else {
-			$user_name = 'associate';
-		}
-        return get_user_by('login', $user_name);
+			if ( $user_claim[$this->_settings->local_organization_claim_type] == $this->_settings->local_organization_name ) {
+				return BCC_Login_Users::get_member();
+			}
+
+			return BCC_Login_Users::get_subscriber();
     }
 
 
