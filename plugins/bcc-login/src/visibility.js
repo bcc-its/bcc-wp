@@ -83,7 +83,7 @@ registerPlugin('bcc-login-visibility', {
     withInstanceId
   ])((props) => (
     <PluginPostStatusInfo>
-      <VisibilityOptions heading={__('Post visibility')} {...props} />
+      <VisibilityOptions heading={__('Post Audience')} {...props} />
     </PluginPostStatusInfo>
   ))
 })
