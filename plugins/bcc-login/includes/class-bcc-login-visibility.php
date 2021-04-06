@@ -192,4 +192,11 @@ class BCC_Login_Visibility {
 
         return $block_content;
     }
+
+    /**
+     * Delets all `bcc_login_visibility` values from the database.
+     */
+    static function on_uninstall() {
+        delete_metadata( 'post', 0, 'bcc_login_visibility', '', true );
+    }
 }

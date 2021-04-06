@@ -53,6 +53,7 @@ class BCC_Login_Plugin {
      */
     static function uninstall_plugin() {
         self::remove_common_logins();
+        BCC_Login_Visibility::on_uninstall();
     }
 
     private Auth_Settings $_settings;
