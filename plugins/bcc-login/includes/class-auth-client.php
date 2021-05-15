@@ -10,12 +10,6 @@ class Auth_Client {
         add_action( 'parse_request', array( $this, 'on_parse_request' ) );
     }
 
-    function ensure_authenticated() {
-        if (!is_user_logged_in()) {
-            $this->start_login();
-        }
-    }
-
     function start_login() {
         $state = $this->create_authentication_state();
         $auth_url = $this->get_authorization_url($state);
