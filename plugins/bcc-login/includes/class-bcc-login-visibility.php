@@ -3,6 +3,7 @@
 class BCC_Login_Visibility {
 
     private Auth_Settings $_settings;
+    private Auth_Client $_client;
 
     private $default_level = 0;
 
@@ -14,10 +15,12 @@ class BCC_Login_Visibility {
 
     private $post_types = array( 'post', 'page' );
 
-    function __construct( Auth_Settings $settings ) {
+    function __construct( Auth_Settings $settings, Auth_Client $client ) {
         $this->_settings = $settings;
+        $this->_client = $client;
 
         add_action( 'init', array( $this, 'on_init' ) );
+        add_action( 'template_redirect', array( $this, 'on_template_redirect' ), 0 );
         add_action( 'added_post_meta', array( $this, 'on_meta_saved' ), 10, 4 );
         add_action( 'updated_post_meta', array( $this, 'on_meta_saved' ), 10, 4 );
         add_action( 'enqueue_block_editor_assets', array( $this, 'on_block_editor_assets' ) );
@@ -37,6 +40,41 @@ class BCC_Login_Visibility {
                 'type'         => 'number',
                 'default'      => $this->default_level,
             ) );
+        }
+    }
+
+    /**
+     * Redirects current user to login if the post requires a higher level.
+     *
+     * @return void
+     */
+    function on_template_redirect() {
+        $post = get_post();
+
+        if ( current_user_can( 'edit_posts' ) || ! $post ) {
+            return;
+        }
+
+        $level      = $this->get_current_user_level();
+        $visibility = (int) get_post_meta( $post->ID, 'bcc_login_visibility', true );
+
+        if ( $visibility && $visibility > $level ) {
+            if ( is_user_logged_in() ) {
+                wp_die(
+                    sprintf(
+                        '%s<br><a href="%s">%s</a>',
+                        __( 'Sorry, you are not allowed to view this page.', 'bcc-login' ),
+                        site_url(),
+                        __( 'Go to the front page', 'bcc-login' )
+                    ),
+                    __( 'Unauthorized' ),
+                    array(
+                        'response' => 401,
+                    )
+                );
+            } else {
+                $this->_client->start_login();
+            }
         }
     }
 
@@ -90,13 +128,13 @@ class BCC_Login_Visibility {
 
     /**
      * Filters out posts that the current user shouldn't see. This filter
-     * applies to single posts, category lists and REST API results.
+     * applies to category lists and REST API results.
      *
      * @param WP_Query $query
      * @return WP_Query
      */
     function filter_pre_get_posts( $query ) {
-        if ( current_user_can( 'edit_posts' ) ) {
+        if ( current_user_can( 'edit_posts' ) || $query->is_single ) {
             return $query;
         }
 

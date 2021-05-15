@@ -61,15 +61,25 @@ class BCC_Login_Users {
     function __construct( Auth_Settings $settings ) {
         $this->_settings = $settings;
 
+        add_action( 'init', array( $this, 'on_init' ) );
         add_action( 'admin_init', array( $this, 'on_admin_init' ) );
         add_action( 'pre_user_query', array( $this, 'modify_user_query' ) );
         add_action( 'profile_update', array( $this, 'on_profile_update' ), 10, 2 );
     }
 
     /**
-     * Disallows admin access for common users.
+     * Hides the admin bar for common users.
      *
      * @return void
+     */
+    function on_init() {
+        if ( $this->is_common_user( wp_get_current_user() ) ) {
+            show_admin_bar(false);
+        }
+    }
+
+    /**
+     * Disallows admin access for common users.
      */
     function on_admin_init() {
         if ( $this->is_common_user( wp_get_current_user() ) ) {

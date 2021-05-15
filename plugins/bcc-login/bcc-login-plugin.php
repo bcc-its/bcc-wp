@@ -67,13 +67,12 @@ class BCC_Login_Plugin {
         $this->_settings = $settings_provider->get_settings();
         $this->_client = new Auth_Client($this->_settings);
         $this->_users = new BCC_Login_Users($this->_settings);
-        $this->_visibility = new BCC_Login_Visibility($this->_settings);
+        $this->_visibility = new BCC_Login_Visibility( $this->_settings, $this->_client );
 
         // Add init handler
         add_action( 'init', array( $this, 'on_init' ) );
 
 		// Add privacy handlers
-		// add_action( 'template_redirect', array( $this, 'on_template_redirect' ), 0 );
 		add_filter( 'the_content_feed', array( $this, 'filter_the_content_feed' ), 999 );
 		add_filter( 'the_excerpt_rss', array( $this, 'filter_the_excerpt_rss' ), 999 );
         add_filter( 'comment_text_rss', array( $this, 'filter_comment_text_rss' ), 999 );
@@ -83,10 +82,6 @@ class BCC_Login_Plugin {
 
     function on_init(){
 
-    }
-
-    function on_template_redirect(){
-        $this->_client->ensure_authenticated();
     }
 
     function filter_the_content_feed( $content ){
