@@ -2,9 +2,9 @@
 
 class BCC_Login_Users {
 
-    private Auth_Settings $_settings;
+    private BCC_Login_Settings $_settings;
 
-    function __construct( Auth_Settings $settings ) {
+    function __construct( BCC_Login_Settings $settings ) {
         $this->_settings = $settings;
 
         add_action( 'init', array( $this, 'on_init' ) );

@@ -1,6 +1,6 @@
 <?php
 
-class Auth_Settings {
+class BCC_Login_Settings {
 
     public $authority;
     public $jwks_uri;
@@ -20,9 +20,9 @@ class Auth_Settings {
 /**
  * Provides settings
  */
-class Auth_Settings_Provider {
+class BCC_Login_Settings_Provider {
 
-    private Auth_Settings $_settings;
+    private BCC_Login_Settings $_settings;
 
         /**
      * List of settings that can be defined by environment variables.
@@ -44,7 +44,7 @@ class Auth_Settings_Provider {
 
     function __construct () {
         // Set default settings
-        $settings = new Auth_Settings();
+        $settings = new BCC_Login_Settings();
         $settings->authority = 'https://login.bcc.no';
         $settings->token_endpoint = 'https://login.bcc.no/oauth/token';
         $settings->authorization_endpoint = 'https://login.bcc.no/authorize';
@@ -85,7 +85,7 @@ class Auth_Settings_Provider {
      *
      * @return Sign-on settings
      */
-    public function get_settings() : Auth_Settings {
+    public function get_settings() : BCC_Login_Settings {
         return $this->_settings;
     }
 }

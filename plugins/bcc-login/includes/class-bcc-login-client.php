@@ -1,11 +1,11 @@
 <?php
 
-class Auth_Client {
+class BCC_Login_Client {
 
-    private Auth_Settings $_settings;
+    private BCC_Login_Settings $_settings;
     private $STATE_TIME_LIMIT = 180;
 
-    function __construct( Auth_Settings $settings) {
+    function __construct( BCC_Login_Settings $settings) {
         $this->_settings = $settings;
         add_action( 'parse_request', array( $this, 'on_parse_request' ) );
     }

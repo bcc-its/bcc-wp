@@ -11,8 +11,8 @@
 define( 'BCC_LOGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'BCC_LOGIN_URL', plugin_dir_url( __FILE__ ) );
 
-require_once( 'includes/class-auth-settings.php' );
-require_once( 'includes/class-auth-client.php' );
+require_once( 'includes/class-bcc-login-settings.php' );
+require_once( 'includes/class-bcc-login-client.php' );
 require_once( 'includes/class-bcc-login-visibility.php' );
 require_once( 'includes/class-bcc-login-users.php' );
 
@@ -25,8 +25,8 @@ class BCC_Login {
      */
     private static $instance = null;
 
-    private Auth_Settings $_settings;
-    private Auth_Client $_client;
+    private BCC_Login_Settings $_settings;
+    private BCC_Login_Client $_client;
     private BCC_Login_Users $_users;
     private BCC_Login_Visibility $_visibility;
 
@@ -34,10 +34,10 @@ class BCC_Login {
      * Initialize the plugin.
      */
     private function __construct(){
-        $settings_provider = new Auth_Settings_Provider();
+        $settings_provider = new BCC_Login_Settings_Provider();
 
         $this->_settings = $settings_provider->get_settings();
-        $this->_client = new Auth_Client($this->_settings);
+        $this->_client = new BCC_Login_Client($this->_settings);
         $this->_users = new BCC_Login_Users($this->_settings);
         $this->_visibility = new BCC_Login_Visibility( $this->_settings, $this->_client );
 

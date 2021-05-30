@@ -2,8 +2,8 @@
 
 class BCC_Login_Visibility {
 
-    private Auth_Settings $_settings;
-    private Auth_Client $_client;
+    private BCC_Login_Settings $_settings;
+    private BCC_Login_Client $_client;
 
     private $default_level = 0;
 
@@ -15,7 +15,7 @@ class BCC_Login_Visibility {
 
     private $post_types = array( 'post', 'page' );
 
-    function __construct( Auth_Settings $settings, Auth_Client $client ) {
+    function __construct( BCC_Login_Settings $settings, BCC_Login_Client $client ) {
         $this->_settings = $settings;
         $this->_client = $client;
 
