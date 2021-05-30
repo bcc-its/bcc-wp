@@ -2,60 +2,6 @@
 
 class BCC_Login_Users {
 
-    static function get_logins() {
-        return array(
-            array(
-                'login' => 'bcc-login-member',
-                'desc'  => __( 'Member' ),
-                'role'  => 'bcc-login-member',
-            ),
-            array(
-                'login' => 'bcc-login-subscriber',
-                'desc'  => __( 'Subscriber' ),
-                'role'  => 'subscriber',
-            ),
-        );
-    }
-
-    static function get_member() {
-        $logins = self::get_logins();
-        return get_user_by( 'login', $logins[0]['login'] );
-    }
-
-    static function get_subscriber() {
-        $logins = self::get_logins();
-        return get_user_by( 'login', $logins[1]['login'] );
-    }
-
-    static function create_users() {
-        foreach ( self::get_logins() as $info ) {
-            if ( ! get_user_by( 'login', $info['login'] ) ) {
-                $uid = wp_insert_user(
-                    array(
-                        'user_login'           => $info['login'],
-                        'user_pass'            => wp_generate_password( 32, true, true ),
-                        'user_email'           => $info['login'] . '@bcc.no',
-                        'display_name'         => $info['desc'],
-                        'role'                 => $info['role'],
-                        'show_admin_bar_front' => false
-                    )
-                );
-
-                if ( is_wp_error( $uid ) ) {
-                    wp_die( 'Common user creation failed.' );
-                }
-            }
-        }
-    }
-
-    static function remove_users() {
-        foreach ( self::get_logins() as $info ) {
-            if ( $user = get_user_by( 'login', $info['login'] ) ) {
-                wp_delete_user( $user->ID );
-            }
-        }
-    }
-
     private Auth_Settings $_settings;
 
     function __construct( Auth_Settings $settings ) {
@@ -132,5 +78,59 @@ class BCC_Login_Users {
             }
         }
         return false;
+    }
+
+    static function get_logins() {
+        return array(
+            array(
+                'login' => 'bcc-login-member',
+                'desc'  => __( 'Member' ),
+                'role'  => 'bcc-login-member',
+            ),
+            array(
+                'login' => 'bcc-login-subscriber',
+                'desc'  => __( 'Subscriber' ),
+                'role'  => 'subscriber',
+            ),
+        );
+    }
+
+    static function get_member() {
+        $logins = self::get_logins();
+        return get_user_by( 'login', $logins[0]['login'] );
+    }
+
+    static function get_subscriber() {
+        $logins = self::get_logins();
+        return get_user_by( 'login', $logins[1]['login'] );
+    }
+
+    static function create_users() {
+        foreach ( self::get_logins() as $info ) {
+            if ( ! get_user_by( 'login', $info['login'] ) ) {
+                $uid = wp_insert_user(
+                    array(
+                        'user_login'           => $info['login'],
+                        'user_pass'            => wp_generate_password( 32, true, true ),
+                        'user_email'           => $info['login'] . '@bcc.no',
+                        'display_name'         => $info['desc'],
+                        'role'                 => $info['role'],
+                        'show_admin_bar_front' => false
+                    )
+                );
+
+                if ( is_wp_error( $uid ) ) {
+                    wp_die( 'Common user creation failed.' );
+                }
+            }
+        }
+    }
+
+    static function remove_users() {
+        foreach ( self::get_logins() as $info ) {
+            if ( $user = get_user_by( 'login', $info['login'] ) ) {
+                wp_delete_user( $user->ID );
+            }
+        }
     }
 }
