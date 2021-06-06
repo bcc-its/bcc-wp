@@ -17,6 +17,14 @@ class BCC_Login_Client {
         exit;
     }
 
+    function end_login() {
+        if ( ! empty( $_COOKIE['oidc_token_id'] ) ) {
+            $token_id = $_COOKIE['oidc_token_id'];
+            delete_transient( 'oidc_access_token_' . $token_id );
+            delete_transient( 'oidc_id_token' . $token_id );
+        }
+    }
+
     private function create_authentication_state() : Auth_State{
         // New state w/ timestamp.
         $obj_state = new Auth_State();

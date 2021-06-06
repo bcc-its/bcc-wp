@@ -41,11 +41,49 @@ class BCC_Login {
         $this->_users = new BCC_Login_Users($this->_settings);
         $this->_visibility = new BCC_Login_Visibility( $this->_settings, $this->_client );
 
-        add_filter( 'logout_url', array( $this, 'get_logout_url' ), 999 );
+        add_action( 'init', array ( $this, 'redirect_login' ) );
+        add_action( 'init', array ( $this, 'start_session' ), 1 );
+        add_action( 'wp_authenticate', array( $this, 'end_session' ) );
+        add_action( 'wp_logout', array( $this, 'end_session' ) );
 
         register_activation_hook( __FILE__, array( 'BCC_Login', 'activate_plugin' ) );
         register_deactivation_hook( __FILE__, array( 'BCC_Login', 'deactivate_plugin' ) );
         register_uninstall_hook( __FILE__, array( 'BCC_Login', 'uninstall_plugin' ) );
+    }
+
+    function redirect_login() {
+        global $pagenow;
+
+        $action = isset( $_GET['action'] ) ? $_GET['action'] : '';
+
+        if (
+            $pagenow != 'wp-login.php' ||
+            isset( $_GET['loggedout'] ) ||
+            isset( $_POST['wp-submit'] ) ||
+            isset( $_GET['login-error'] ) ||
+            in_array( $action, array( 'logout', 'lostpassword', 'rp', 'resetpass', 'register' ) )
+        ) {
+            return;
+        }
+
+        $this->_client->start_login();
+    }
+
+    /**
+     * Start PHP Session if not already started
+     */
+    function start_session() {
+        if ( ! session_id() ) {
+            session_start();
+        }
+    }
+
+    /**
+     * End PHP session (e.g. after logout)
+     */
+    function end_session() {
+        $this->_client->end_login();
+        session_destroy();
     }
 
     /**
