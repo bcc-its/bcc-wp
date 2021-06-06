@@ -90,8 +90,7 @@ class BCC_Login_Client {
         }
 
         if ( ! is_a( $user, 'WP_User' ) || ! $user->exists() ) {
-            echo 'User does not exist.';
-            exit;
+            wp_die( 'User does not exist.' );
         }
 
         // Login the found / created user.
@@ -109,23 +108,22 @@ class BCC_Login_Client {
 
     function save_tokens( $expiration, $access_token, $id_token ) {
         if ( ! empty( $access_token ) ) {
-            $token_id = uniqid ( '', true );
-            setcookie( 'oidc_token_id', $token_id, $expiration, '/' , '', true, true );
+            $token_id = uniqid( '', true );
+            $timeout = ( (int) $expiration ) - time();
 
-            if ( ! empty( $person_id ) ) {
-                $timeout = ( (int) $expiration ) - time();
-                set_transient( 'oidc_access_token_' . $token_id, $access_token, $timeout );
-                $_SESSION['oidc_access_token'] = $access_token;
-                if ( ! empty( $id_token ) ) {
-                    set_transient( 'oidc_id_token' . $token_id, $id_token, $timeout );
-                    $_SESSION['oidc_id_token'] = $id_token;
-                }
-            } else {
-                delete_transient( 'oidc_access_token_' . $token_id );
-                $_SESSION['oidc_access_token'] = '';
-                $_SESSION['oidc_id_token'] = '';
+            setcookie( 'oidc_token_id', $token_id, $expiration, '/' , '', true, true );
+            set_transient( 'oidc_access_token_' . $token_id, $access_token, $timeout );
+            $_SESSION['oidc_access_token'] = $access_token;
+
+            if ( ! empty( $id_token ) ) {
+                set_transient( 'oidc_id_token' . $token_id, $id_token, $timeout );
+                $_SESSION['oidc_id_token'] = $id_token;
             }
         }
+    }
+
+    function get_access_token() {
+        return isset( $_SESSION['oidc_access_token'] ) ? $_SESSION['oidc_access_token'] : '';
     }
 
     function create_new_user( $person_id, $email, $user_claims ) {
@@ -216,13 +214,14 @@ class BCC_Login_Client {
 
     private function get_authorization_url( Auth_State $state ) {
         return sprintf(
-            '%1$s%2$sresponse_type=code&scope=%3$s&client_id=%4$s&state=%5$s&redirect_uri=%6$s',
+            '%1$s%2$sresponse_type=code&scope=%3$s&client_id=%4$s&state=%5$s&redirect_uri=%6$s&audience=%7$s',
             $this->_settings->authorization_endpoint,
             '?',
             rawurlencode( $this->_settings->scope ),
             rawurlencode( $this->_settings->client_id ),
             $state->state,
-            rawurlencode( $this->get_full_redirect_url() )
+            rawurlencode( $this->get_full_redirect_url() ),
+            rawurlencode( 'https://widgets.brunstad.org' )
         );
     }
 
@@ -245,8 +244,7 @@ class BCC_Login_Client {
         $response = wp_remote_post( $this->_settings->token_endpoint, $request );
 
         if ( ! isset( $response['body'] ) ) {
-            echo 'Token body is missing';
-            exit;
+            wp_die( 'Token body is missing' );
         }
 
         // Extract the token response from token.
@@ -254,8 +252,7 @@ class BCC_Login_Client {
 
         // Check that the token response body was able to be parsed.
         if ( is_null( $result ) ) {
-            echo 'Invalid token';
-            exit;
+            wp_die( 'Invalid token' );
         }
 
         if ( isset( $result['error'] ) ) {

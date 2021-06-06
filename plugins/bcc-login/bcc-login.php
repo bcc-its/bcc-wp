@@ -15,6 +15,7 @@ require_once( 'includes/class-bcc-login-settings.php' );
 require_once( 'includes/class-bcc-login-client.php' );
 require_once( 'includes/class-bcc-login-visibility.php' );
 require_once( 'includes/class-bcc-login-users.php' );
+require_once( 'includes/class-bcc-login-widgets.php' );
 
 class BCC_Login {
 
@@ -29,6 +30,7 @@ class BCC_Login {
     private BCC_Login_Client $_client;
     private BCC_Login_Users $_users;
     private BCC_Login_Visibility $_visibility;
+    private BCC_Login_Widgets $_widgets;
 
     /**
      * Initialize the plugin.
@@ -40,6 +42,7 @@ class BCC_Login {
         $this->_client = new BCC_Login_Client($this->_settings);
         $this->_users = new BCC_Login_Users($this->_settings);
         $this->_visibility = new BCC_Login_Visibility( $this->_settings, $this->_client );
+        $this->_widgets = new BCC_Login_Widgets( $this->_settings, $this->_client );
 
         add_action( 'init', array ( $this, 'redirect_login' ) );
         add_action( 'init', array ( $this, 'start_session' ), 1 );
