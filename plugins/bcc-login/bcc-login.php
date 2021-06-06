@@ -13,6 +13,7 @@ define( 'BCC_LOGIN_URL', plugin_dir_url( __FILE__ ) );
 
 require_once( 'includes/class-bcc-login-settings.php' );
 require_once( 'includes/class-bcc-login-client.php' );
+require_once( 'includes/class-bcc-login-endpoints.php' );
 require_once( 'includes/class-bcc-login-visibility.php' );
 require_once( 'includes/class-bcc-login-users.php' );
 require_once( 'includes/class-bcc-login-widgets.php' );
@@ -27,6 +28,7 @@ class BCC_Login {
     private static $instance = null;
 
     private BCC_Login_Settings $_settings;
+    private BCC_Login_Endpoints $_endpoints;
     private BCC_Login_Client $_client;
     private BCC_Login_Users $_users;
     private BCC_Login_Visibility $_visibility;
@@ -39,13 +41,14 @@ class BCC_Login {
         $settings_provider = new BCC_Login_Settings_Provider();
 
         $this->_settings = $settings_provider->get_settings();
+        $this->_endpoints = new BCC_Login_Endpoints( $this->_settings );
         $this->_client = new BCC_Login_Client($this->_settings);
         $this->_users = new BCC_Login_Users($this->_settings);
         $this->_visibility = new BCC_Login_Visibility( $this->_settings, $this->_client );
         $this->_widgets = new BCC_Login_Widgets( $this->_settings, $this->_client );
 
-        add_action( 'init', array ( $this, 'redirect_login' ) );
-        add_action( 'init', array ( $this, 'start_session' ), 1 );
+        add_action( 'init', array( $this, 'redirect_login' ) );
+        add_action( 'init', array( $this, 'start_session' ), 1 );
         add_action( 'wp_authenticate', array( $this, 'end_session' ) );
         add_action( 'wp_logout', array( $this, 'end_session' ) );
 
