@@ -14,6 +14,7 @@ if ( isset( $_SERVER['HTTP_COOKIE'] ) ) {
 }
 
 wp_redirect( get_home_url() );
-die;
+
+exit;
 
 ?>
