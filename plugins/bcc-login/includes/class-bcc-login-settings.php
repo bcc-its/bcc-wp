@@ -14,7 +14,7 @@ class BCC_Login_Settings {
     public $create_missing_users;
     public $local_organization_name;
     public $local_organization_claim_type;
-	public $topbar;
+    public $topbar;
 }
 
 /**
@@ -24,8 +24,8 @@ class BCC_Login_Settings_Provider {
 
     private BCC_Login_Settings $_settings;
 
-	protected $option_name = 'bcc_login_settings';
-	protected $options_page = 'bcc_login';
+    protected $option_name = 'bcc_login_settings';
+    protected $options_page = 'bcc_login';
 
     /**
      * List of settings that can be defined by environment variables.
@@ -114,10 +114,10 @@ class BCC_Login_Settings_Provider {
             array( $this, 'render_checkbox_field' ),
             $this->options_page,
             'general',
-			array(
+            array(
                 'name' => 'bcc_topbar',
                 'value' => $this->_settings->topbar,
-				'label' => __( 'Show the BCC topbar', 'bcc-login' )
+                'label' => __( 'Show the BCC topbar', 'bcc-login' )
             )
         );
     }
@@ -127,20 +127,20 @@ class BCC_Login_Settings_Provider {
      */
     function render_options_page() { ?>
         <div class="wrap">
-			<h1><?php _e( 'BCC Login Settings', 'bcc-login' ); ?></h1>
-			<form method="post" action="options.php">
-				<?php settings_fields( $this->option_name ); ?>
-				<?php do_settings_sections( $this->options_page ); ?>
-				<?php submit_button(); ?>
-			</form>
-		</div>
+            <h1><?php _e( 'BCC Login Settings', 'bcc-login' ); ?></h1>
+            <form method="post" action="options.php">
+                <?php settings_fields( $this->option_name ); ?>
+                <?php do_settings_sections( $this->options_page ); ?>
+                <?php submit_button(); ?>
+            </form>
+        </div>
         <?php
     }
 
-	/**
-	 * Renders a checkbox field in settings page.
-	 */
-	function render_checkbox_field( $args ) { ?>
+    /**
+     * Renders a checkbox field in settings page.
+     */
+    function render_checkbox_field( $args ) { ?>
         <label>
             <input
                 type="checkbox"
@@ -153,22 +153,22 @@ class BCC_Login_Settings_Provider {
             <?php echo isset( $args['label'] ) ? $args['label'] : ''; ?>
         <label>
         <?php
-	}
+    }
 
-	/**
-	 * Renders the description for a field.
-	 */
-	function render_field_description( $args ) {
-		if ( isset( $args['description'] ) ) : ?>
-			<p class="description">
-				<?php echo $args['description']; ?>
-				<?php if ( isset( $args['example'] ) ) : ?>
-					<br/><strong><?php _e( 'Example', 'bcc-login' ); ?>: </strong>
-					<code><?php echo $args['example']; ?></code>
-				<?php endif; ?>
-			</p>
-		<?php endif;
-	}
+    /**
+     * Renders the description for a field.
+     */
+    function render_field_description( $args ) {
+        if ( isset( $args['description'] ) ) : ?>
+            <p class="description">
+                <?php echo $args['description']; ?>
+                <?php if ( isset( $args['example'] ) ) : ?>
+                    <br/><strong><?php _e( 'Example', 'bcc-login' ); ?>: </strong>
+                    <code><?php echo $args['example']; ?></code>
+                <?php endif; ?>
+            </p>
+        <?php endif;
+    }
 
     /**
      * Get signon settings
