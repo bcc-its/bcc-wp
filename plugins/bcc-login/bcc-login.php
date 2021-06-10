@@ -110,6 +110,9 @@ class BCC_Login {
             add_role( 'bcc-login-member', __( 'Member' ), array( 'read' => true ) );
         }
         BCC_Login_Users::create_users();
+
+        // Flush rewrite rules to make pretty URLs for endpoints work.
+        flush_rewrite_rules();
     }
 
     /**
@@ -117,7 +120,7 @@ class BCC_Login {
      * Called when plugin is deactivated
      */
     static function deactivate_plugin() {
-
+        flush_rewrite_rules();
     }
 
     /**
