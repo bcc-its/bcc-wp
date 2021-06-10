@@ -243,6 +243,10 @@ class BCC_Login_Client {
 
         $response = wp_remote_post( $this->_settings->token_endpoint, $request );
 
+        if ( is_wp_error( $response ) ) {
+            wp_die( $response->get_error_message() );
+        }
+
         if ( ! isset( $response['body'] ) ) {
             wp_die( 'Token body is missing' );
         }
